@@ -13,19 +13,6 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  apellido:{
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  tipIdentidad: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  identificacion:{
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique:true,
-  },
   telefono:{
     type:DataTypes.STRING,
     allowNull: false,
