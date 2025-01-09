@@ -131,16 +131,10 @@ exports.registerUser = async (req, res) => {
     const token = req.params.token;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const { nombre, telefono, email, password } = decoded;
-
-!nombre ? res.status(400).json({message:'nombre no puede estar vacio'}) : null;
-!telefono ? res.status(400).json({message:'telefono no puede estar vacio'}) : null;
-!email ? res.status(400).json({message:'email no puede estar vacio'}) : null;
-!password ? res.status(400).json({message:'password no puede estar vacio'}) : null;
-
-  /*   if (!nombre || !telefono || !email || !password) {
+    if (!nombre || !telefono || !email || !password) {
       return res.status(400).json({ message: 'Datos incompletos en el token' });
-    } */
-  
+    }
+
     try {
       const user = await User.create({
         nombre,
@@ -163,4 +157,30 @@ exports.registerUser = async (req, res) => {
     } 
   }  
 };
+
+
+
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+    return res.status(401).json({ message: "Usuario no encontrado" });
+    }
+    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Contraseña incorrecta"});
+    }
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "5h" }
+    );
+    return res.json({ token, role: user.role });
+  } catch (error) {
+    return res.status(500).json({ message: "Error en el login", error });
+  }
+};
+
+
 
