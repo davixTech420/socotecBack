@@ -131,12 +131,17 @@ exports.registerUser = async (req, res) => {
     const token = req.params.token;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const { nombre, telefono, email, password } = decoded;
-    if (!nombre || !telefono || !email || !password) {
+
+!nombre ? res.status(400).json({message:'nombre no puede estar vacio'}) : null;
+!telefono ? res.status(400).json({message:'telefono no puede estar vacio'}) : null;
+!email ? res.status(400).json({message:'email no puede estar vacio'}) : null;
+!password ? res.status(400).json({message:'password no puede estar vacio'}) : null;
+
+  /*   if (!nombre || !telefono || !email || !password) {
       return res.status(400).json({ message: 'Datos incompletos en el token' });
-    }
+    } */
   
     try {
-     
       const user = await User.create({
         nombre,
         telefono,
