@@ -145,8 +145,8 @@ exports.registerUser = async (req, res) => {
         estado: true,
         role: "employee",
       });
-      res.status(200).json({ message: 'Usuario creado exitosamente' });
-        /*res.redirect("http://10.48.4.204:8081/singIn"); */
+     /*  res.status(200).json({ message: 'Usuario creado exitosamente' }); */
+        res.redirect("http://10.48.4.204:8081/singIn");
     } catch (error) {
       res.status(500).json({ error: 'Error al crear el empleado'});
     }
