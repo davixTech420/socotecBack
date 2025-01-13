@@ -14,4 +14,8 @@ router.post("/emailPassword",userController.emailPassword);
 //esta es la ruta para enviar  el fromulario de restablecimiento de contraseña
 router.post("/forgotPassword",userController.forgotPassword);
 
+router.post("/validarToken",userController.validarToken);
+
+
+
 module.exports = router;

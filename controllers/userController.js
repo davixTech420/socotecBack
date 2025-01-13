@@ -193,7 +193,7 @@ exports.emailPassword = async (req, res) => {
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '10m' });
 
-    const resetLink = `http://10.48.4.204:8081/forgotPass/${token}`;
+    const resetLink = `http://10.48.5.114:8081/(forgotPass)/${token}`;
     //autenticacion para enviar los gmails/
     const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
     oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
@@ -307,11 +307,22 @@ exports.emailPassword = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
   try {
-    const { token } = req.params;
+    const {password, token } = req.body;
 
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // Buscar el usuario por ID
+    const user = await User.findByPk(decoded.id);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
+    // Actualizar la contraseña del usuario
+    const hashedPassword = await bcrypt.hash(password, 10); // Encriptar la nueva contraseña
+    user.password = hashedPassword;
+    await user.save();
 
+    res.status(200).json({ success: true, message: 'Contraseña actualizada correctamente' });
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
       return res.status(401).json({ message: 'Token ha expirado' });
@@ -321,4 +332,22 @@ exports.forgotPassword = async (req, res) => {
   }
 
 
+}
+
+exports.validarToken = async (req, res) => {
+  const { token } = req.body;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { id, role } = decoded;
+    if (!id || !role) {
+      return res.status(400).json({ message: 'Datos incompletos en el token' });
+    }
+    res.status(200).json({ message: 'Token validado', id, role });
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({ message: 'Token ha expirado' });
+    } else {
+      return res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  }
 }
