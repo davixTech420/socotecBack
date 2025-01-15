@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 app.use("/api/public", publicRoutes);
 //rutas para el empleado validando autenticacion con token y con roles
 app.use("/api/employee", authMiddleware);
-app.use("/api/admin", authMiddleware,roleMiddleware("admin"),adminRoutes);
+app.use("/api/admin", authMiddleware,adminRoutes);
 
 
 
