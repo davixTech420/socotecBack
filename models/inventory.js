@@ -2,40 +2,35 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/bd");
 
-const Proyect = sequelize.define("Proyect", {
+const Inventory = sequelize.define("Inventory", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
     unique: true,
   },
-  nombre: {
+  nombreMaterial: {
     type: DataTypes.STRING,
     allowNull: false,
     unique:true,
   },
-  descripcion: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique:false,
-  },
-  presupuesto:{
-    type:DataTypes.FLOAT,
-    allowNull: false,
-    unique:false,
-  },
-  cliente:{
+  descripcion:{
     type:DataTypes.STRING,
     allowNull: false,
     unique:false,
   },
-  fechaInicio:{
-    type:DataTypes.DATEONLY,
+  cantidad:{
+    type:DataTypes.INTEGER,
     allowNull: false,
     unique:false,
   },
-  fechaEntrega:{
-    type:DataTypes.DATEONLY,
+  unidadMedida:{
+    type:DataTypes.STRING,
+    allowNull: false,
+    unique:false,
+  },
+precioUnidad:{
+    type:DataTypes.FLOAT,
     allowNull: false,
     unique:false,
   },
@@ -44,4 +39,4 @@ const Proyect = sequelize.define("Proyect", {
     allowNull: false,
   },
 });
-module.exports = Proyect;
+module.exports = Inventory;
