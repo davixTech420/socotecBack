@@ -15,9 +15,9 @@ exports.createInventory = async (req, res) => {
     try {
         const { nombreMaterial, descripcion,cantidad, unidadMedida,precioUnidad } = req.body;
         const inventory = await Inventory.create({ nombreMaterial, descripcion, cantidad,unidadMedida,precioUnidad,estado:true });
-        res.status(200).json(inventory);
+        res.status(200).json(inventory); 
     } catch (error) {
-        res.status(500).json({ error: 'Error al crear registro de inventario' });
+        res.status(500).json({ error: 'Error al crear registro de inventario' + error });
     }
 };
 

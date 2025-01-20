@@ -21,8 +21,7 @@ app.use(bodyParser.json());
 //rutas del backend o endpoints rutas publicas
 app.use("/api/public", publicRoutes);
 //rutas para el empleado validando autenticacion con token y con roles
-app.use("/api/employee", authMiddleware);
-app.use("/api/admin", authMiddleware,adminRoutes);
+app.use("/api/admin", adminRoutes,authMiddleware);
 
 
 

@@ -7,5 +7,6 @@ const inventoryController = require('../controllers/inventoryController');
 router.get("/users",userController.getUsers);
 
 router.post("/inventory",inventoryController.createInventory);
+router.get("/inventory",inventoryController.getInventory);
 
 module.exports = router;
