@@ -20,5 +20,47 @@ exports.createInventory = async (req, res) => {
         res.status(500).json({ error: 'Error al crear registro de inventario' + error });
     }
 };
+exports.deleteInventory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const proyect = await Inventory.findByPk(id);
+        if (!proyect) {
+            res.status(404).json({ error: 'No se encontro el registro' });
+        }
+        await proyect.destroy();
+        res.status(200).json({ message: 'Registro eliminado' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al eliminar el registro' + error });
+    }
+};
+
+
+exports.activeInventory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const proyect = await Inventory.findByPk(id);
+        if (!proyect) {
+            res.status(404).json({ error: 'No se encontro el registro' });
+        }
+        proyect.update({ estado: true });
+        res.status(200).json({ message: 'Registro activado' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al activar el registro' + error });
+    }
+};
+
+exports.inactiveInventory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const proyect = await Inventory.findByPk(id);
+        if (!proyect) {
+            res.status(404).json({ error: 'No se encontro el registro' });
+        }
+        proyect.update({ estado: false });
+        res.status(200).json({ message: 'Registro desactivado' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al desactivar el registro' + error });
+    }
+};
 
 
