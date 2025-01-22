@@ -172,7 +172,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Contraseña incorrecta" });
     }
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, role: user.role,email:user.email,nombre:user.nombre },
       process.env.JWT_SECRET,
       { expiresIn: "5h" }
     );
@@ -352,13 +352,106 @@ exports.validarToken = async (req, res) => {
   }
 }
 
-//endpoint para obtener los usuario
 
+
+//endpoint para obtener los usuario
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.findAll();
     res.status(200).json(users);
   } catch (error) {
+    res.status(500).json(error);
+  }
+}
+
+//endpoint para eliminar un  usuario
+exports.deleteUser = async (req,res) => {
+  try{
+    const {id} = req.params;
+    const user = await User.findByPk(id);
+    if(!user){
+      return res.status(404).json({message:"Usuario no encontrado"});
+    }
+    await user.destroy();
+    res.status(200).json({message:"Usuario eliminado"});
+
+  }catch(error){
+    res.status(500).json(error);
+
+  }
+}
+
+
+// endpoint para actualizar un usuario
+exports.updateUser = async (req,res) => {
+  try{
+    const {id} = req.params;
+    const {nombre,telefono,email,password} = req.body;
+    const user = await User.findByPk(id);
+    if(!user){
+      return res.status(404).json({message:"Usuario no encontrado"});
+    }
+    user.nombre = nombre;
+    user.telefono = telefono;
+    user.email = email;
+    user.password = password;
+    await user.save();
+    res.status(200).json({message:"Usuario actualizado"});
+
+  }catch(error){
+    res.status(500).json(error);
+
+  }
+}
+
+//endpoint para inactivar usuarios
+exports.inactivateUser = async (req,res) => {
+  try{
+    const {id} = req.params;
+    const user = await User.findByPk(id);
+    if(!user){
+      return res.status(404).json({message:"Usuario no encontrado"});
+    }
+    user.estado = false;
+    await user.save();
+    res.status(200).json({message:"Usuario inactivado"});
+
+  }catch(error){
+    res.status(500).json(error);
+
+  }
+}
+
+//endpoint para activar usuarios
+exports.activateUser = async (req,res) => {
+  try{
+    const {id} = req.params;
+    const user = await User.findByPk(id);
+    if(!user){
+      return res.status(404).json({message:"Usuario no encontrado"});
+    }
+    user.estado = true;
+    await user.save();
+    res.status(200).json({message:"Usuario activado"});
+
+  }catch(error){
+    res.status(500).json(error);
+
+  }
+}
+
+//endpoint para cambiar rol de usuario
+exports.changeRole = async (req,res) => {
+  try{
+    const {id,role} = req.params;
+    const user = await User.findByPk(id);
+    if(!user){
+      return res.status(404).json({message:"Usuario no encontrado"});
+    }
+    user.role = role;
+    await user.save();
+    res.status(200).json({message:"Rol cambiado"});
+  }catch(error){
     res.status(500).json(error);
   }
 }
