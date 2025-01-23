@@ -12,22 +12,22 @@ exports.getProyect = async (req, res) => {
 
 exports.createProyect = async (req, res) => {
     try {
-        const { nombre, presupuesto, fechaEntrega } = req.body;
-        const proyect = await Proyect.create({ nombre, presupuesto, fechaEntrega, estado: true });
+        const { nombre,descripcion, presupuesto,cliente,fechaInicio, fechaEntrega } = req.body;
+        const proyect = await Proyect.create({ nombre,descripcion, presupuesto,cliente,fechaInicio, fechaEntrega, estado: true });
         res.status(200).json(proyect);
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener los proyectos' });
+        res.status(500).json({ error: 'Error al crear el proyecto' });
     }
 };
 
 
 exports.updateProyect = async (req, res) => {
     try {
-        const { nombre, presupuesto, fechaEntrega, estado } = req.body;
-        const proyect = await Proyect.update({ nombre, presupuesto, fechaEntrega, estado });
+        const { nombre, descripcion,presupuesto,cliente, fechaInicio,fechaEntrega,estado } = req.body;
+        const proyect = await Proyect.update({ nombre, descripcion,presupuesto,cliente, fechaInicio, fechaEntrega, estado });
         res.status(200).json(proyect);
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener los proyectos' });
+        res.status(500).json({ error: 'Error al actualizar el proyecto' });
     }
 };
 
@@ -39,6 +39,30 @@ exports.deleteProyect = async (req, res) => {
         const proyect = await Proyect.destroy({ where: { id } });
         res.status(200).json(proyect);
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener los proyectos' });
+        res.status(500).json({ error: 'Error al eliminar el proyecto' });
     }
 };
+
+
+
+exports.activeProyect = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const proyect = await Proyect.update({ estado: true }, { where: { id } });
+        res.status(200).json(proyect);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al activar el proyecto' });
+    }
+};
+
+
+
+exports.inactiveProyect = async (req,res) => {
+    try {
+        const id = req.params.id;
+        const proyect = await Proyect.update({ estado: false }, { where: { id } });
+        res.status(200).json(proyect);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al inactivar el proyecto' });
+    }
+}
