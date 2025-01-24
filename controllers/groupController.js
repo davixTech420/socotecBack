@@ -59,6 +59,9 @@ res.status(500).json({ error: "Error al activar el grupo" });
 
 exports.inactivateGroup = async (req, res) => {
     try{
+      const {id} = req.params;
+      const group = await Group.update({ estado: false }, { where: { id } });
+      res.status(200).json(group);
 
     }catch(error){
         res.status(500).json({error : "Error al inactivar el grupo"});

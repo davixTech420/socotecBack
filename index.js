@@ -27,7 +27,7 @@ app.use("/api/public", publicRoutes);
 app.use("/api/admin", adminRoutes,authMiddleware);
 
 //iniciso del servidor ojo el force en true elimina toda la base de datos
-sequelize.sync({ force:false,alter:false }).then(() => {
+sequelize.sync({ force:false,alter:true }).then(() => {
   app.listen(port, () => {
     console.log('Servidor corriendo en el puerto ', port);
   });

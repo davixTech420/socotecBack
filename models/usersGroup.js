@@ -3,6 +3,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/bd");
 const User = require('./user');
 const Proyect = require('./proyect');
+const Group = require("./group");
 
 const UsersGroup = sequelize.define("UsersGroup", {
   id: {
@@ -20,15 +21,15 @@ const UsersGroup = sequelize.define("UsersGroup", {
       foreignKey:'userId'
     },
 },
-  proyectId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: Proyect,
-      key:'id',
-      foreignKey:'proyectId'
-    },
-  }
+groupId: {
+  type: DataTypes.INTEGER,
+  allowNull: false,
+  references: {
+    model: Group,
+    key:'id',
+    foreignKey:'groupId'
+  },
+}
 });
 
 module.exports = UsersGroup;

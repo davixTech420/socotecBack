@@ -4,6 +4,7 @@ const userController = require('../controllers/userController');
 const inventoryController = require('../controllers/inventoryController');
 const groupController = require('../controllers/groupController');
 const permissionController = require('../controllers/permissionController');
+const proyectController = require("../controllers/proyectController");
 
 //rutas para la tabla de usuarios desde el administrador
 router.get("/users",userController.getUsers);
@@ -32,6 +33,16 @@ router.put("/groups/:id",groupController.updateGroup);
 router.delete("/groups/:id",groupController.deleteGroup);
 router.put("/groups/:id/active",groupController.activateGroup);
 router.put("/groups/:id/inactive",groupController.inactivateGroup);
+
+
+//funcionalidades para los proyectos
+router.get("/proyects",proyectController.getProyect);
+router.post("/proyects",proyectController.createProyect);
+router.put("/proyects/:id",proyectController.updateProyect);
+router.delete("/proyects/:id",proyectController.deleteProyect);
+router.put("/proyects/:id/active",proyectController.activeProyect); 
+router.put("/proyects/:id/inactive",proyectController.inactiveProyect);
+
 
 
 //funcionalidades para los permisos

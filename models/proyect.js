@@ -1,6 +1,7 @@
 // models/User.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/bd");
+const Group = require("./group");
 
 const Proyect = sequelize.define("Proyect", {
   id: {
@@ -17,7 +18,7 @@ const Proyect = sequelize.define("Proyect", {
   descripcion: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique:false,
+    
   },
   presupuesto:{
     type:DataTypes.FLOAT,
@@ -43,5 +44,14 @@ const Proyect = sequelize.define("Proyect", {
     type:DataTypes.BOOLEAN,
     allowNull: false,
   },
+  groupId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: Group,
+      key:'id',
+      foreignKey:'groupId'
+    },
+},
 });
 module.exports = Proyect;
