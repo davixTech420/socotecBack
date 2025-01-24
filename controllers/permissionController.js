@@ -12,11 +12,13 @@ exports.getPermissions = async (req, res) => {
 
 exports.createPermission = async (req, res) => {
   try {
+   
     const { solicitanteId, aprobadorId, tipoPermiso, fechaInicio, fechaFin } = req.body;
     const permission = await Permission.create({ solicitanteId, aprobadorId, tipoPermiso, fechaInicio, fechaFin, estado: 'Pendiente' });
-    res.status(200).json(permission);
+
+    res.status(201).json(permission);
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear el permiso' });
+    res.status(500).json({ error: 'Error al crear el permiso',error:error });
   }
 };
 
