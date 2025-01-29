@@ -8,6 +8,7 @@ const proyectController = require("../controllers/proyectController");
 const usersGroupController = require("../controllers/usersGroupController");
 
 //rutas para la tabla de usuarios desde el administrador
+router.post("/users",userController.createUser);
 router.get("/users",userController.getUsers);
 router.delete("/users/:id",userController.deleteUser);
 router.put("/users/:id",userController.updateUser);

@@ -145,7 +145,7 @@ exports.registerUser = async (req, res) => {
         role: "employee",
       });
       /*  res.status(200).json({ message: 'Usuario creado exitosamente' }); */
-      res.redirect("http://10.48.12.161:8081/singIn");
+      res.redirect("http://10.48.12.211:8081/singIn");
     } catch (error) {
       res.status(500).json({ error: 'Error al crear el empleado' });
     }
@@ -157,6 +157,26 @@ exports.registerUser = async (req, res) => {
     }
   }
 };
+
+
+
+exports.createUser = async (req, res) => {
+  try {
+    const { nombre, telefono, email, password } = req.body;
+    const user = await User.create({
+      nombre,
+      telefono,
+      email,
+      password: await bcrypt.hash(password, 10),
+      estado: true,
+      role: "employee",
+    });
+    return res.status(201).json({ message: "Usuario creado", user });
+  } catch (error) {
+    return res.status(500).json({ message: "Error al crear usuario", error });
+
+  }
+}
 
 
 
@@ -193,7 +213,7 @@ exports.emailPassword = async (req, res) => {
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '10m' });
 
-    const resetLink = `http://10.48.12.161:8081/(forgotPass)/${token}`;
+    const resetLink = `http://10.48.12.211:8081/(forgotPass)/${token}`;
     //autenticacion para enviar los gmails/
     const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
     oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
