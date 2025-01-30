@@ -163,6 +163,11 @@ exports.registerUser = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const { nombre, telefono, email, password } = req.body;
+    const validateEmail = await User.findOne({ where: { email,telefono } });
+    if (validateEmail) {
+      return res.status(400).json({ message: 'El usuario ya existe' });
+    }
+
     const user = await User.create({
       nombre,
       telefono,

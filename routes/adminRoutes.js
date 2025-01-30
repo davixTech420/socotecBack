@@ -21,6 +21,7 @@ router.put("/users/:id/role",userController.changeRole);
 
 //funcionalidades para el inventario por parte del administrador
 router.post("/inventory",inventoryController.createInventory);
+router.put("/inventory/:id",inventoryController.updateInventory);
 router.get("/inventory",inventoryController.getInventory);
 router.delete("/inventory/:id",inventoryController.deleteInventory);
 router.put("/inventory/:id/active",inventoryController.activeInventory);
