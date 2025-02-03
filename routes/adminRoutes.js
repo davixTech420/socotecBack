@@ -14,7 +14,6 @@ router.delete("/users/:id",userController.deleteUser);
 router.put("/users/:id",userController.updateUser);
 router.put("/users/:id/active",userController.activateUser);
 router.put("/users/:id/inactive",userController.inactivateUser);
-router.put("/users/:id/role",userController.changeRole);
 
 
 

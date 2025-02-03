@@ -145,7 +145,7 @@ exports.registerUser = async (req, res) => {
         role: "employee",
       });
       /*  res.status(200).json({ message: 'Usuario creado exitosamente' }); */
-      res.redirect("http://10.48.5.113:8081/singIn");
+      res.redirect("http://10.48.5.155:8081/singIn");
     } catch (error) {
       res.status(500).json({ error: 'Error al crear el empleado' });
     }
@@ -163,7 +163,7 @@ exports.registerUser = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const { nombre, telefono, email, password } = req.body;
-    const validateEmail = await User.findOne({ where: { email,telefono } });
+    const validateEmail = await User.findOne({ where: { email, telefono } });
     if (validateEmail) {
       return res.status(400).json({ message: 'El usuario ya existe' });
     }
@@ -197,7 +197,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Contraseña incorrecta" });
     }
     const token = jwt.sign(
-      { id: user.id, role: user.role,email:user.email,nombre:user.nombre },
+      { id: user.id, role: user.role, email: user.email, nombre: user.nombre, telefono: user.telefono },
       process.env.JWT_SECRET,
       { expiresIn: "5h" }
     );
@@ -218,7 +218,7 @@ exports.emailPassword = async (req, res) => {
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '10m' });
 
-    const resetLink = `http://10.48.5.113:8081/forgotPass/${token}`;
+    const resetLink = `http://10.48.5.155:8081/forgotPass/${token}`;
     //autenticacion para enviar los gmails/
     const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
     oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
@@ -332,7 +332,7 @@ exports.emailPassword = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
   try {
-    const {password, token } = req.body;
+    const { password, token } = req.body;
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -390,88 +390,74 @@ exports.getUsers = async (req, res) => {
 }
 
 //endpoint para eliminar un  usuario
-exports.deleteUser = async (req,res) => {
-  try{
-    const {id} = req.params;
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
     const user = await User.findByPk(id);
-    if(!user){
-      return res.status(404).json({message:"Usuario no encontrado"});
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
     await user.destroy();
-    res.status(200).json({message:"Usuario eliminado"});
-  }catch(error){
+    res.status(200).json({ message: "Usuario eliminado" });
+  } catch (error) {
     res.status(500).json(error);
   }
 }
 
 
 // endpoint para actualizar un usuario
-exports.updateUser = async (req,res) => {
-  try{
-    const {id} = req.params;
-    const {nombre,telefono,email} = req.body;
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, telefono, email, role } = req.body;
     const user = await User.findByPk(id);
-    if(!user){
-      return res.status(404).json({message:"Usuario no encontrado"});
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
     user.nombre = nombre;
     user.telefono = telefono;
     user.email = email;
+    user.role = role;
     await user.save();
-    res.status(200).json({message:"Usuario actualizado"});
-  }catch(error){
+    res.status(200).json({ message: "Usuario actualizado" });
+  } catch (error) {
     res.status(500).json(error);
   }
 }
 
 //endpoint para inactivar usuarios
-exports.inactivateUser = async (req,res) => {
-  try{
-    const {id} = req.params;
+exports.inactivateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
     const user = await User.findByPk(id);
-    if(!user){
-      return res.status(404).json({message:"Usuario no encontrado"});
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
     user.estado = false;
     await user.save();
-    res.status(200).json({message:"Usuario inactivado"});
+    res.status(200).json({ message: "Usuario inactivado" });
 
-  }catch(error){
+  } catch (error) {
     res.status(500).json(error);
 
   }
 }
 
 //endpoint para activar usuarios
-exports.activateUser = async (req,res) => {
-  try{
-    const {id} = req.params;
+exports.activateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
     const user = await User.findByPk(id);
-    if(!user){
-      return res.status(404).json({message:"Usuario no encontrado"});
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
     user.estado = true;
     await user.save();
-    res.status(200).json({message:"Usuario activado"});
+    res.status(200).json({ message: "Usuario activado" });
 
-  }catch(error){
+  } catch (error) {
     res.status(500).json(error);
 
   }
 }
 
-//endpoint para cambiar rol de usuario
-exports.changeRole = async (req,res) => {
-  try{
-    const {id,role} = req.params;
-    const user = await User.findByPk(id);
-    if(!user){
-      return res.status(404).json({message:"Usuario no encontrado"});
-    }
-    user.role = role;
-    await user.save();
-    res.status(200).json({message:"Rol cambiado"});
-  }catch(error){
-    res.status(500).json(error);
-  }
-}
