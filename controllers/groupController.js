@@ -18,19 +18,20 @@ exports.createGroup = async (req, res) => {
   try {
     const { nombre, descripcion } = req.body;
     const group = await Group.create({ nombre, descripcion, estado:true });
-    res.status(200).json(group);
+    res.status(200).json({ message: "Grupo creado correctamente",group });
   } catch (error) {
-    res.status(500).json({ error: "Error al crear el grupo" });
+    res.status(500).json({ error: "Error al crear el grupo",error });
   }
 };
 
 exports.updateGroup = async (req, res) => {
   try {
+    const {id} = req.params;
     const { nombre, descripcion } = req.body;
-    const group = await Group.update({ nombre, descripcion });
-    res.status(200).json(group);
+    const group = await Group.update({ nombre, descripcion }, { where: { id } });
+    res.status(200).json({ message : "Grupo actualizado correctamente",group });
   } catch (error) {
-    res.status(500).json({ error: "Error al actualizar el grupo" });
+    res.status(500).json({ error: "Error al actualizar el grupo",error });
   }
 };
 

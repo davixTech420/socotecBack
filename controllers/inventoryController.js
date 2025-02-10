@@ -15,7 +15,7 @@ exports.createInventory = async (req, res) => {
     try {
         const { nombreMaterial, descripcion,cantidad, unidadMedida,precioUnidad } = req.body;
         const inventory = await Inventory.create({ nombreMaterial, descripcion, cantidad,unidadMedida,precioUnidad,estado:true });
-        res.status(200).json(inventory); 
+        res.status(200).json({ message: 'Registro de inventario creado',inventory }); 
     } catch (error) {
         res.status(500).json({ error: 'Error al crear registro de inventario' + error });
     }
@@ -30,13 +30,12 @@ try{
         res.status(404).json({ error: 'No se encontro el registro' });
     }
     inventory.update({ nombreMaterial, descripcion, cantidad,unidadMedida,precioUnidad });
-    res.status(200).json({ message: 'Registro actualizado' });
-
+    res.status(200).json({ message: 'Registro actualizado',inventory });
 }catch(error){
     res.status(500).json({ error: 'Error al actualizar el registro de inventario' + error });
 }
-
 }
+
 exports.deleteInventory = async (req, res) => {
     try {
         const { id } = req.params;
