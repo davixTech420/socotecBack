@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const UsersGroup = require("../models/usersGroup");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
@@ -388,6 +389,8 @@ exports.getUsers = async (req, res) => {
     res.status(500).json(error);
   }
 }
+
+
 
 //endpoint para eliminar un  usuario
 exports.deleteUser = async (req, res) => {

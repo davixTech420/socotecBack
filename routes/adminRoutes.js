@@ -39,7 +39,8 @@ router.put("/groups/:id/inactive",groupController.inactivateGroup);
 
 //funcionalidades para los usuarios de un grupo
 router.get("/userGroup/:id",usersGroupController.getUsersGroup);
-router.post("/userGroup",usersGroupController.createUsersGroup);
+router.delete("/userGroup/:id",usersGroupController.deleteUsersGroup)
+router.get("/userNotGroup",usersGroupController.getUsersNotGroup);
 
 
 //funcionalidades para los proyectos
