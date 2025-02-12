@@ -1,3 +1,4 @@
+const { where } = require('sequelize');
 const Proyect = require('../models/proyect');
 const User = require('../models/user');
 
@@ -23,11 +24,12 @@ exports.createProyect = async (req, res) => {
 
 exports.updateProyect = async (req, res) => {
     try {
-        const { nombre, descripcion,presupuesto,cliente, fechaInicio,fechaEntrega,estado } = req.body;
-        const proyect = await Proyect.update({ nombre, descripcion,presupuesto,cliente, fechaInicio, fechaEntrega, estado });
+        const { id } = req.params;
+        const { nombre, descripcion,presupuesto,cliente, fechaInicio,fechaEntrega } = req.body;
+        const proyect = await Proyect.update({ nombre, descripcion,presupuesto,cliente, fechaInicio, fechaEntrega }, {where:{id}});
         res.status(200).json(proyect);
     } catch (error) {
-        res.status(500).json({ error: 'Error al actualizar el proyecto' });
+        res.status(500).json({ error: 'Error al actualizar el proyecto', error });  
     }
 };
 
