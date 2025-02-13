@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/bd");
+const Account = require("../models/account");
 
 const Motion = sequelize.define("Motion", {
   id: {
@@ -24,15 +25,28 @@ allowNull:false,
     type: DataTypes.STRING,
     allowNull: false,
   },
-cuentaOrigenId:{
-    type:DataTypes.INTEGER,
-    allowNull:false,
-    references:{
-        
-    }
-},
+  cuentaEmisoraId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: Account,
+      key:'id',
+      foreignKey:'cuentaEmisoraId'
+    },
+  },
+  cuentaReceptoraId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: Account,
+      key:'id',
+      foreignKey:'cuentaReceptoraId'
+    },
+  },
   estado: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
   },
 });
+
+module.exports = Motion;

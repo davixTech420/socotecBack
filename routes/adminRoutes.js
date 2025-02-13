@@ -1,11 +1,24 @@
 const express = require('express');
 const router = express.Router();
+//controladores para endpoints
 const userController = require('../controllers/userController');
 const inventoryController = require('../controllers/inventoryController');
 const groupController = require('../controllers/groupController');
 const permissionController = require('../controllers/permissionController');
 const proyectController = require("../controllers/proyectController");
 const usersGroupController = require("../controllers/usersGroupController");
+//modelos para endpoints en especifico
+const User = require("../models/user");
+const Permission  = require("../models/permission");
+
+
+
+
+router.get("/dashboard",(req,res)=>{
+  res.send("admin");
+});
+
+
 
 //rutas para la tabla de usuarios desde el administrador
 router.post("/users",userController.createUser);
