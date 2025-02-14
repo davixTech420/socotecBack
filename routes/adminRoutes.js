@@ -20,6 +20,9 @@ router.get("/dashboard",(req,res)=>{
 
 
 
+
+
+
 //rutas para la tabla de usuarios desde el administrador
 router.post("/users",userController.createUser);
 router.get("/users",userController.getUsers);
@@ -48,6 +51,7 @@ router.put("/groups/:id",groupController.updateGroup);
 router.delete("/groups/:id",groupController.deleteGroup);
 router.put("/groups/:id/active",groupController.activateGroup);
 router.put("/groups/:id/inactive",groupController.inactivateGroup);
+router.get("/groupNotProyect",groupController.getGroupNotProyect);
 
 
 //funcionalidades para los usuarios de un grupo

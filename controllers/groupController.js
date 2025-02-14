@@ -1,8 +1,10 @@
 const Group = require("../models/group");
 const User = require("../models/user");
 const Employee = require("../models/employee");
+const Proyect = require("../models/proyect");
 const Permission = require("../models/permission");
 const UsersGroup = require("../models/usersGroup");
+const { Op } = require("sequelize");
 
 exports.getGroups = async (req, res) => {
   try {
@@ -97,3 +99,34 @@ exports.getUsersGroup = async (req, res) => {
     res.status(500).json({ error: "Error al obtener los usuarios del grupo" });
   }
 };
+
+
+
+//obtener los grupos activos sin proyectos
+exports.getGroupNotProyect = async (req,res) => {
+try{
+ // Paso 1: Obtener todos los groupId que están asociados a un proyecto
+ const gruposConProyecto = await Proyect.findAll({
+  attributes: ['groupId'], // Solo nos interesa el groupId
+  where: {
+    groupId: { [Op.not]: null } // Filtramos solo los proyectos con groupId no nulo
+  },
+  raw: true // Para obtener un array plano de resultados
+});
+
+// Extraemos los groupId únicos
+const groupIdsConProyecto = gruposConProyecto.map(proyecto => proyecto.groupId);
+
+// Paso 2: Buscar los grupos que no están en la lista de groupIdsConProyecto
+const gruposSinProyecto = await Group.findAll({
+  where: {
+    id: { [Op.notIn]: groupIdsConProyecto },
+    estado: true // Filtramos los grupos que no tienen proyectos
+  }
+});
+
+res.json(gruposSinProyecto);
+}catch(error){
+  res.status(500).json({ message: "ha ocurrido un error" ,error});  
+}
+}
