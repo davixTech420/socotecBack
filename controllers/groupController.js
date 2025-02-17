@@ -56,9 +56,11 @@ exports.updateGroup = async (req, res) => {
 exports.deleteGroup = async (req, res) => {
   try {
     const id = req.params.id;
+    if(await Proyect.findOne({where:{groupId:id}})){
+      return res.status(400).json({ message: "No se puede eliminar el grupo porque tiene proyectos asociados" });
+    }
     const userGroup = await UsersGroup.destroy({ where: { groupId: id } });
     const group = await Group.destroy({ where: { id } });
-    
     res.status(200).json(group);
   } catch (error) {
     res.status(500).json({ error: "Error al eliminar el grupo" });

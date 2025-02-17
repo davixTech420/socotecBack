@@ -61,6 +61,7 @@ exports.getUsersNotGroup = async (req, res) => {
     const usersNotInGroup = await User.findAll({
       where: {
         id: { [Op.notIn]: userIdsInGroup.length ? userIdsInGroup : userIdsInGroup }, // Evita error si no hay usuarios en el grupo
+        estado:true,
       },
     });
 
