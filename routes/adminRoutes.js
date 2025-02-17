@@ -7,6 +7,7 @@ const groupController = require('../controllers/groupController');
 const permissionController = require('../controllers/permissionController');
 const proyectController = require("../controllers/proyectController");
 const usersGroupController = require("../controllers/usersGroupController");
+const accountController = require("../controllers/accountController");
 //modelos para endpoints en especifico
 const User = require("../models/user");
 const Permission  = require("../models/permission");
@@ -78,6 +79,15 @@ router.delete("/permissions/:id",permissionController.deletePermission);
 router.put("/permissions/:id/active",permissionController.activePermission);
 router.put("/permissions/:id/inactive",permissionController.inactivePermission);
 
+
+
+
+
+//funcionalidades de las cuentas y movimientos en general las finanzas
+router.post("/accounts",accountController.createAccount);
+router.get("/accounts",accountController.getAccounts);
+router.delete("/accounts/:id",accountController.deleteAccount);
+router.put("/accounts/:id",accountController.updateAccount);
 
 
 
