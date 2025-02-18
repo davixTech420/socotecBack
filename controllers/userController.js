@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const { google } = require('googleapis');
+const { Op } = require("sequelize");
 
 //confirmacion al email para crear el usuario 
 //se envia un email con un token y al confirmar el correo
@@ -398,11 +399,14 @@ exports.deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
-    if (user.estado== true ) {
-      return res.status(400).json({ message: "El usuario no puede ser eliminado porque está activo" });  
+    if (user.estado == true) {
+      return res.status(400).json({ message: "El usuario no puede ser eliminado porque está activo" });
     }
-    if (await UsersGroup.findOne({where:{userId:id}})){
+    if (await UsersGroup.findOne({ where: { userId: id } })) {
       return res.status(400).json({ message: "No se puede eliminar el usuario porque tiene grupos asociados" });
+    }
+    if (await Permissions.findAll({ where: { [Op.or]: [{ solicitanteId: id }, { aprovadorId: id }] } })) {
+      return res.status(400).json({ message: "No se puede eliminar el usuario porque tiene permisos asociados" });
     }
     await user.destroy();
     res.status(200).json({ message: "Usuario eliminado" });
@@ -440,7 +444,7 @@ exports.inactivateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
-    if (await UsersGroup.findOne({where:{userId:id}})){
+    if (await UsersGroup.findOne({ where: { userId: id } })) {
       return res.status(400).json({ message: "El usuario no puede ser inactivado porque está en un grupo" });
     }
     user.estado = false;
