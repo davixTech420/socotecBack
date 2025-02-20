@@ -147,7 +147,7 @@ exports.registerUser = async (req, res) => {
         role: "employee",
       });
       /*  res.status(200).json({ message: 'Usuario creado exitosamente' }); */
-      res.redirect("http://10.48.4.206:8081/singIn");
+      res.redirect("http://10.48.5.38:8081/singIn");
     } catch (error) {
       res.status(500).json({ error: 'Error al crear el empleado' });
     }
@@ -223,7 +223,7 @@ exports.emailPassword = async (req, res) => {
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '10m' });
 
-    const resetLink = `http://10.48.4.206:8081/forgotPass/${token}`;
+    const resetLink = `http://10.48.5.38:8081/forgotPass/${token}`;
     //autenticacion para enviar los gmails/
     const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
     oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
@@ -392,7 +392,7 @@ exports.getUsers = async (req, res) => {
 
 
 //endpoint para eliminar un  usuario
-exports.deleteUser = async (req, res) => {
+/* exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findByPk(id);
@@ -414,7 +414,37 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json(error);
   }
 }
+ */
 
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+    if (user.estado === true) {
+      return res.status(400).json({ message: "El usuario no puede ser eliminado porque está activo" });
+    }
+    
+    const userGroup = await UsersGroup.findOne({ where: { userId: id } });
+    if (userGroup) {
+      return res.status(400).json({ message: "No se puede eliminar el usuario porque tiene grupos asociados" });
+    }
+
+    const permisos = await Permissions.findAll({ where: { [Op.or]: [{ solicitanteId: id }, { aprovadorId: id }] } });
+    if (permisos.length > 0) {
+      return res.status(400).json({ message: "No se puede eliminar el usuario porque tiene permisos asociados" });
+    }
+
+    await user.destroy();
+    res.status(200).json({ message: "Usuario eliminado" });
+  } catch (error) {
+    console.error("Error en deleteUser:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
 
 // endpoint para actualizar un usuario
 exports.updateUser = async (req, res) => {

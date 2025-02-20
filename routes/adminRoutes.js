@@ -11,6 +11,8 @@ const accountController = require("../controllers/accountController");
 //modelos para endpoints en especifico
 const User = require("../models/user");
 const Permission  = require("../models/permission");
+//validacion
+const validate = require("../middleware/validationScheme");
 
 
 
@@ -25,7 +27,7 @@ router.get("/dashboard",(req,res)=>{
 
 
 //rutas para la tabla de usuarios desde el administrador
-router.post("/users",userController.createUser);
+router.post("/users",validate("users"),userController.createUser);
 router.get("/users",userController.getUsers);
 router.delete("/users/:id",userController.deleteUser);
 router.put("/users/:id",userController.updateUser);
