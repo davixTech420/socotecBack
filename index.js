@@ -15,6 +15,7 @@ const UsersGroup = require('./models/usersGroup');
 const Permission = require("./models/permission");
 const Account = require("./models/account");
 const Motion = require("./models/motion");
+const Portfolio = require("./models/portfolio");
 const authMiddleware = require('./middleware/authMiddleware');
 const roleMiddleware = require("./middleware/roleMiddleware");
 const port = 3000;
@@ -23,6 +24,9 @@ require('dotenv').config();
 app.use(cors({origin:"*"}));
 app.use(bodyParser.json());
 
+
+
+app.use("/images",express.static("public/images"));
 //rutas del backend o endpoints rutas publicas
 app.use("/api/public", publicRoutes);
 //rutas para el empleado validando autenticacion con token y con roles

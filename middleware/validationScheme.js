@@ -1,4 +1,4 @@
-const { body,validationResult } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 
 const validationSchemas = {
     users: {
@@ -26,17 +26,86 @@ const validationSchemas = {
                 return true;
             }),
         password: body('password')
+            .optional()
             .isLength({ min: 8 })
             .withMessage('La contraseña debe tener al menos 8 caracteres.')
     },
-    products: {
-        name: body('name')
+    inventory: {
+        nombreMaterial: body('nombreMaterial')
             .isString()
+            .notEmpty()
             .withMessage('El nombre debe ser una cadena de texto.'),
-        price: body('price')
-            .isFloat({ min: 0 })
-            .withMessage('El precio debe ser un número positivo.'),
-        // Agrega más campos aquí
+        descripcion: body('descripcion')
+            .notEmpty()
+            .withMessage('La descripcion no puedo estar vacia.'),
+        cantidad: body("cantidad").notEmpty().isNumeric().withMessage("La cantidad debe ser un número."),
+        unidadMedida: body("unidadMedida").notEmpty().isString()
+            .matches(/^[A-Za-z\s]+$/)
+            .withMessage("La unidad de medida debe ser una cadena de texto."),
+        precioUnidad: body("precioUnidad").notEmpty().isFloat().withMessage("El precio de la unidad debe ser un número."),
+    },
+    group: {
+        nombre: body("nombre")
+            .notEmpty()
+            .isString()
+            .matches(/^[A-Za-z\s]+$/)
+            .withMessage("El nombre no puede estar vacío y debe ser una cadena de texto."),
+        descripcion: body("descripcion")
+            .notEmpty()
+            .withMessage("La descripcion no puede estar vacia."),
+        usuarios: body("usuarios")
+            .notEmpty()
+            .withMessage("Los usuarios no pueden estar vacios."),
+    },
+    proyect: {
+        nombre: body("nombre")
+            .notEmpty()
+            .withMessage("El nombre no puede estar vacío."),
+        descripcion: body("descripcion")
+            .notEmpty()
+            .withMessage("La descripcion no puede estar vacia."),
+        presupuesto: body("presupuesto")
+            .notEmpty()
+            .isFloat()
+            .withMessage("El presupuesto no puede estar vacío y debe ser un número."),
+        cliente: body("cliente")
+            .notEmpty()
+            .withMessage("El cliente no puede estar vacío."),
+        fechaInicio: body("fechaInicio")
+            .notEmpty()
+            .isDate()
+            .withMessage("La fecha de inicio no puede estar vacía."),
+        fechaEntrega: body("fechaEntrega")
+            .notEmpty()
+            .isDate()
+            .withMessage("La fecha de entrega no puede estar vacía."),
+    },
+    permission: {
+        solicitanteId: body("solicitanteId")
+            .notEmpty()
+            .isNumeric()
+            .withMessage("El solicitante no puede estar vacío y debe ser un numero."),
+        aprobadorId: body("aprobadorId")
+            .notEmpty()
+            .isNumeric()
+            .withMessage("El aprobador no puede estar vacío y debe ser un numero."),
+        tipoPermiso: body("tipoPermiso")
+            .notEmpty()
+            .isIn(["Vacaciones", "Medico", "Personal"])
+            .withMessage("El tipo de permiso no puede estar vacío y debe ser una de las opciones."),
+        fechaInicio: body("fechaInicio")
+            .notEmpty()
+            .isDate()
+            .withMessage("La fecha de inicio no puede estar vacía."),
+        fechaFin: body("fechaFin")
+            .notEmpty()
+            .isDate()
+            .withMessage("La fecha de fin no puede estar vacía."),
+    },
+    portfolio:{
+        nombre: body("nombre")
+            .notEmpty()
+            .withMessage("El nombre no puede estar vacío."),
     },
     // Agrega más tablas aquí
 };
