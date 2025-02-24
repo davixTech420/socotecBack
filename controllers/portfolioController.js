@@ -1,6 +1,7 @@
 const Portfolio = require('../models/portfolio');
 const User = require('../models/user');
 const multer = require('multer');
+const fs = require('fs');
 const path = require('path');
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -23,24 +24,16 @@ exports.getPortfolio = async (req, res) => {
     }
 };
 
-/* exports.createPortfolio =  async (req, res) => {
-    try {
-        const { nombre, descripcion, presupuesto, cliente, ubicacion, superficie, imagenes, detalle } = req.body;
-        const proyect = await Portfolio.create({ nombre, descripcion, presupuesto, cliente, ubicacion, superficie, imagenes, detalle, estado: true });
-        res.status(200).json(proyect);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al crear el proyecto' });
-    }
-}; */
+
 
 exports.createPortfolio = [
-    upload.array('imagenes', 5), // Permite subir hasta 5 imágenes
+    upload.array('imagenes', 7), // Permite subir hasta 5 imágenes
     async (req, res) => {
         try {
             console.log('Body:', req.body); // Depuración: Verifica el cuerpo de la solicitud
             console.log('Files:', req.files); // Depuración: Verifica los archivos subidos
 
-            const { nombre, descripcion, presupuesto, cliente, ubicacion, superficie, detalle } = req.body;
+            const { nombre, cliente, ubicacion, presupuesto, descripcion, superficie, detalle } = req.body;
 
             // Verifica si hay archivos subidos
             if (!req.files || req.files.length === 0) {
@@ -58,24 +51,23 @@ exports.createPortfolio = [
             // Crea el proyecto en la base de datos
             const proyect = await Portfolio.create({
                 nombre,
-                descripcion,
-                presupuesto,
                 cliente,
                 ubicacion,
+                presupuesto,
+                descripcion,
                 superficie,
-                imagenes, // Guarda las rutas de las imágenes
                 detalle,
+                imagenes, // Guarda las rutas de las imágenes
                 estado: true,
             });
 
-            res.status(200).json(proyect);
+            res.status(200).json({ proyect });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Error al crear el proyecto' });
         }
-    }
+    },
 ];
-
 exports.updatePortfolio = async (req, res) => {
     try {
         const { id } = req.params;
@@ -87,16 +79,44 @@ exports.updatePortfolio = async (req, res) => {
     }
 }
 
+
+
+
+
 exports.deletePortfolio = async (req, res) => {
     try {
         const id = req.params.id;
+
+        const portafolio = await Portfolio.findOne({ where: { id } });
+        if (!portafolio) {
+            return res.status(404).json({ error: 'No se encontró el registro' });
+        }
+        if (portafolio.estado) {
+            return res.status(400).json({ error: 'No se puede eliminar un proyecto del portafolio activo' });
+        }
+        const images = portafolio.imagenes;
+        const uploadDir = path.join(__dirname, '../public'); 
+        images.forEach((image) => {
+            // Construir la ruta completa de la imagen
+            const imagePath = path.join(uploadDir, image.uri); // Usar la propiedad "uri" para la ruta de la imagen
+            try {
+                if (fs.existsSync(imagePath)) { // Verificar si la imagen existe
+                    fs.unlinkSync(imagePath); // Eliminar la imagen
+                    console.log(`Imagen eliminada: ${imagePath}`);
+                } else {
+                    console.warn(`La imagen no existe: ${imagePath}`);
+                }
+            } catch (err) {
+                console.error(`Error al eliminar la imagen ${image.uri}:`, err);
+            }
+        });
         const proyect = await Portfolio.destroy({ where: { id } });
         res.status(200).json(proyect);
     } catch (error) {
-        res.status(500).json({ error: 'Error al eliminar el proyecto' });
+        console.error('Error al eliminar el proyecto del portafolio:', error);
+        res.status(500).json({ error: 'Error al eliminar el proyecto del portafolio' });
     }
-}
-
+};
 
 
 exports.activePortfolio = async (req, res) => {

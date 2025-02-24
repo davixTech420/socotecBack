@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const UsersGroup = require("../models/usersGroup");
+const Permissions = require("../models/permission");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
@@ -390,33 +391,7 @@ exports.getUsers = async (req, res) => {
 }
 
 
-
 //endpoint para eliminar un  usuario
-/* exports.deleteUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
-    }
-    if (user.estado == true) {
-      return res.status(400).json({ message: "El usuario no puede ser eliminado porque está activo" });
-    }
-    if (await UsersGroup.findOne({ where: { userId: id } })) {
-      return res.status(400).json({ message: "No se puede eliminar el usuario porque tiene grupos asociados" });
-    }
-    if (await Permissions.findAll({ where: { [Op.or]: [{ solicitanteId: id }, { aprovadorId: id }] } })) {
-      return res.status(400).json({ message: "No se puede eliminar el usuario porque tiene permisos asociados" });
-    }
-    await user.destroy();
-    res.status(200).json({ message: "Usuario eliminado" });
-  } catch (error) {
-    res.status(500).json(error);
-  }
-}
- */
-
-
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -427,17 +402,14 @@ exports.deleteUser = async (req, res) => {
     if (user.estado === true) {
       return res.status(400).json({ message: "El usuario no puede ser eliminado porque está activo" });
     }
-    
     const userGroup = await UsersGroup.findOne({ where: { userId: id } });
     if (userGroup) {
       return res.status(400).json({ message: "No se puede eliminar el usuario porque tiene grupos asociados" });
     }
-
-    const permisos = await Permissions.findAll({ where: { [Op.or]: [{ solicitanteId: id }, { aprovadorId: id }] } });
+    const permisos = await Permissions.findAll({ where: { [Op.or]: [{ solicitanteId: id }, { aprobadorId: id }] } });
     if (permisos.length > 0) {
       return res.status(400).json({ message: "No se puede eliminar el usuario porque tiene permisos asociados" });
     }
-
     await user.destroy();
     res.status(200).json({ message: "Usuario eliminado" });
   } catch (error) {
@@ -480,10 +452,8 @@ exports.inactivateUser = async (req, res) => {
     user.estado = false;
     await user.save();
     res.status(200).json({ message: "Usuario inactivado" });
-
   } catch (error) {
     res.status(500).json(error);
-
   }
 }
 
