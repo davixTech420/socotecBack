@@ -24,6 +24,18 @@ exports.getPortfolio = async (req, res) => {
     }
 };
 
+exports.getPortfolioActive = async (req,res)=>{
+    try {
+        const proyect = await Portfolio.findAll({where:{estado:true}});
+        res.status(200).json(proyect);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener los proyectos' });
+    }
+
+
+
+}
+
 
 
 exports.createPortfolio = [

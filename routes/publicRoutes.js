@@ -15,6 +15,6 @@ router.post("/forgotPassword",userController.forgotPassword);
 router.post("/validarToken",userController.validarToken);
 
 //ruta para mostar portafolio
-router.get("/portfolio",portfolioController.getPortfolio);
+router.get("/portfolio",portfolioController.getPortfolioActive);
 
 module.exports = router;

@@ -30,7 +30,7 @@ app.use("/images",express.static("public/images"));
 //rutas del backend o endpoints rutas publicas
 app.use("/api/public", publicRoutes);
 //rutas para el empleado validando autenticacion con token y con roles
-app.use("/api/admin", adminRoutes,authMiddleware);
+app.use("/api/admin",adminRoutes,authMiddleware,roleMiddleware("admin"));
 
 //iniciso del servidor ojo el force en true elimina toda la base de datos
 sequelize.sync({ force:false,alter:false }).then(() => {

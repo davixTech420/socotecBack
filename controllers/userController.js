@@ -446,7 +446,8 @@ exports.inactivateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
-    if (await UsersGroup.findOne({ where: { userId: id } })) {
+    const grupos = await UsersGroup.findOne({ where: { userId: id } })
+    if (grupos) {
       return res.status(400).json({ message: "El usuario no puede ser inactivado porque está en un grupo" });
     }
     user.estado = false;
