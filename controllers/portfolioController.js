@@ -104,7 +104,7 @@ exports.deletePortfolio = async (req, res) => {
             return res.status(404).json({ error: 'No se encontró el registro' });
         }
         if (portafolio.estado) {
-            return res.status(400).json({ error: 'No se puede eliminar un proyecto del portafolio activo' });
+            return res.status(400).json({ message: 'No se puede eliminar un proyecto del portafolio activo' });
         }
         const images = portafolio.imagenes;
         const uploadDir = path.join(__dirname, '../public'); 

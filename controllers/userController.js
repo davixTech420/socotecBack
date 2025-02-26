@@ -166,8 +166,8 @@ exports.registerUser = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const { nombre, telefono, email, password } = req.body;
-    const validateEmail = await User.findOne({ where: { email, telefono } });
-    if (validateEmail) {
+    const validateEmail = await User.findOne({ where: { email } });
+    if (validateEmail || validateEmail.telefono === telefono) {
       return res.status(400).json({ message: 'El usuario ya existe' });
     }
 
@@ -427,6 +427,18 @@ exports.updateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
+
+    const usuarioExistente = await User.findOne({
+      where: {
+        [Op.or]: [{ email }, { telefono }],
+        id: { [Op.ne]: id },
+      },
+    });
+
+    if (usuarioExistente) {
+      return res.status(400).json({ message: "El email o el teléfono ya existen en otro usuario" });
+    }
+
     user.nombre = nombre;
     user.telefono = telefono;
     user.email = email;

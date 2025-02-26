@@ -1,5 +1,6 @@
 const Inventory = require('../models/inventory');
 const User = require('../models/user');
+const { Op } = require("sequelize");
 
 
 exports.getInventory = async (req, res) => {
@@ -13,27 +14,44 @@ exports.getInventory = async (req, res) => {
 
 exports.createInventory = async (req, res) => {
     try {
-        const { nombreMaterial, descripcion,cantidad, unidadMedida,precioUnidad } = req.body;
-        const inventory = await Inventory.create({ nombreMaterial, descripcion, cantidad,unidadMedida,precioUnidad,estado:true });
-        res.status(200).json({ message: 'Registro de inventario creado',inventory }); 
+        const { nombreMaterial, descripcion, cantidad, unidadMedida, precioUnidad } = req.body;
+
+        if((await Inventory.findAll({where:{nombreMaterial}})).length > 0){
+            return res.status(400).json({ message: "El material ya existe" });
+        }
+        const inventory = await Inventory.create({ nombreMaterial, descripcion, cantidad, unidadMedida, precioUnidad, estado: true });
+        res.status(200).json({ message: 'Registro de inventario creado', inventory });
     } catch (error) {
         res.status(500).json({ error: 'Error al crear registro de inventario' + error });
     }
 };
 
 
-exports.updateInventory = async (req,res) => {
-try{
-    const { nombreMaterial, descripcion,cantidad, unidadMedida,precioUnidad } = req.body;
-    const inventory = await Inventory.findByPk(req.params.id);
-    if(!inventory){
-        res.status(404).json({ error: 'No se encontro el registro' });
+exports.updateInventory = async (req, res) => {
+    try {
+        const { nombreMaterial, descripcion, cantidad, unidadMedida, precioUnidad } = req.body;
+        const inventory = await Inventory.findByPk(req.params.id);
+        if (!inventory) {
+            res.status(404).json({ error: 'No se encontro el registro' });
+        }
+
+        const inventoyExist = await Inventory.findOne({
+            where: {
+              [Op.or]: [{ nombreMaterial }],
+              id: { [Op.ne]: req.params.id },
+            },
+          });
+          if (inventoyExist) {
+            return res.status(400).json({ message: "El material ya existe" });
+          }
+
+
+
+        inventory.update({ nombreMaterial, descripcion, cantidad, unidadMedida, precioUnidad });
+        res.status(200).json({ message: 'Registro actualizado', inventory });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar el registro de inventario' + error });
     }
-    inventory.update({ nombreMaterial, descripcion, cantidad,unidadMedida,precioUnidad });
-    res.status(200).json({ message: 'Registro actualizado',inventory });
-}catch(error){
-    res.status(500).json({ error: 'Error al actualizar el registro de inventario' + error });
-}
 }
 
 exports.deleteInventory = async (req, res) => {
@@ -42,6 +60,9 @@ exports.deleteInventory = async (req, res) => {
         const proyect = await Inventory.findByPk(id);
         if (!proyect) {
             res.status(404).json({ error: 'No se encontro el registro' });
+        }
+        if (proyect.estado === true) {
+            return res.status(400).json({ message: 'No se puede eliminar un material activo' });
         }
         await proyect.destroy();
         res.status(200).json({ message: 'Registro eliminado' });
