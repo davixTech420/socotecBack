@@ -42,10 +42,11 @@ exports.createPortfolio = [
     upload.array('imagenes', 7), // Permite subir hasta 5 imágenes
     async (req, res) => {
         try {
-            console.log('Body:', req.body); // Depuración: Verifica el cuerpo de la solicitud
-            console.log('Files:', req.files); // Depuración: Verifica los archivos subidos
-
             const { nombre, cliente, ubicacion, presupuesto, descripcion, superficie, detalle } = req.body;
+
+            if (await Portfolio.findAll({ where: { nombre } })) {
+              return  res.status(400).json({ message: "El nombre del proyecto en el portafolio ya existe" });
+            }
 
             // Verifica si hay archivos subidos
             if (!req.files || req.files.length === 0) {
@@ -84,6 +85,9 @@ exports.updatePortfolio = async (req, res) => {
     try {
         const { id } = req.params;
         const { nombre, descripcion, presupuesto, cliente, ubicacion, superficie, imagenes, detalle } = req.body;
+        if (await Portfolio.findAll({ where: { nombre } })) {
+            return  res.status(400).json({ message: "El nombre del proyecto en el portafolio ya existe" });
+          }
         const proyect = await Portfolio.update({ nombre, descripcion, presupuesto, cliente, ubicacion, superficie, imagenes, detalle }, { where: { id } });
         res.status(200).json(proyect);
     } catch (error) {

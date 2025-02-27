@@ -68,6 +68,8 @@ router.put("/proyects/:id",validate("proyect"),proyectController.updateProyect);
 router.delete("/proyects/:id",proyectController.deleteProyect);
 router.put("/proyects/:id/active",proyectController.activeProyect); 
 router.put("/proyects/:id/inactive",proyectController.inactiveProyect);
+router.get("/groupProyect/:groupId",proyectController.getGroupProyect);
+router.put("/deleteGroupProyect/:groupId",proyectController.deleteGroupProyect);
 
 
 

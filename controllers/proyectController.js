@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const Proyect = require('../models/proyect');
-const User = require('../models/user');
+const Group = require("../models/group");
 
 exports.getProyect = async (req, res) => {
     try {
@@ -87,16 +87,24 @@ exports.inactiveProyect = async (req,res) => {
     }
 }
 
-exports.modifyGroupProyect = async (req, res) => {
+exports.getGroupProyect = async (req, res) => {
     try {
         const { groupId } = req.params;
-
-
-        const proyect = await Proyect.update({ groupId }, { where: { id } });
-
-        
-        
+        const groupProyect = await Group.findOne({ where: { id: groupId } });
+        res.status(200).json(groupProyect);
     } catch (error) {
         res.status(500).json({ error: 'Error al modificar el grupo del proyecto' });
+    }
+}
+
+
+exports.deleteGroupProyect = async (req,res) => {
+    try{
+        const { groupId } = req.params;
+        const groupProyect = await Proyect.update({ groupId: null }, { where: { groupId } });
+        res.status(200).json(groupProyect);
+
+    } catch (error) {
+        res.status(500).json({ error: 'Error al eliminar el grupo del proyecto' });
     }
 }
