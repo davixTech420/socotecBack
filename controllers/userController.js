@@ -15,6 +15,18 @@ exports.validarUser = async (req, res) => {
   const { nombre, telefono, email, password } = req.body;
   try {
 
+
+
+
+const validateEmail = await User.findOne({ where: {
+      [Op.or]: [{ email }, { telefono }],
+   } });
+    if (validateEmail) {
+      return res.status(400).json({ message: 'El email o el teléfono ya esta en uso' });
+    } 
+
+
+
     // Generar un token con expiración
     const token = jwt.sign({ nombre, telefono, email, password }, process.env.JWT_SECRET, { expiresIn: '5h' });
 
@@ -148,9 +160,9 @@ exports.registerUser = async (req, res) => {
         role: "employee",
       });
       /*  res.status(200).json({ message: 'Usuario creado exitosamente' }); */
-      res.redirect("http://10.48.5.38:8081/singIn");
+      res.redirect("http://10.48.4.159:8081/singIn");
     } catch (error) {
-      res.status(500).json({ error: 'Error al crear el empleado' });
+      res.redirect("http://10.48.4.159:8081/singIn");
     }
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
@@ -166,9 +178,11 @@ exports.registerUser = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const { nombre, telefono, email, password } = req.body;
-    const validateEmail = await User.findOne({ where: { email } });
-    if (validateEmail || validateEmail.telefono === telefono) {
-      return res.status(400).json({ message: 'El usuario ya existe' });
+    const validateEmail = await User.findOne({ where: {
+      [Op.or]: [{ email }, { telefono }],
+   } });
+    if (validateEmail) {
+      return res.status(400).json({ message: 'El email o el teléfono ya esta en uso' });
     }
 
     const user = await User.create({
@@ -221,10 +235,16 @@ exports.emailPassword = async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "Usuario no encontrado" });
     }
+    if(user.estado === false){
+      return res.status(401).json({ message: "Usuario inactivo" });
+
+    }
+
+
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '10m' });
 
-    const resetLink = `http://10.48.5.38:8081/forgotPass/${token}`;
+    const resetLink = `http://10.48.4.159:8081/forgotPass/${token}`;
     //autenticacion para enviar los gmails/
     const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
     oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
