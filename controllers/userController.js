@@ -3,6 +3,7 @@ const UsersGroup = require("../models/usersGroup");
 const Permissions = require("../models/permission");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const CryptoJS = require("crypto-js");
 const nodemailer = require('nodemailer');
 const { google } = require('googleapis');
 const { Op } = require("sequelize");
@@ -14,18 +15,14 @@ const { Op } = require("sequelize");
 exports.validarUser = async (req, res) => {
   const { nombre, telefono, email, password } = req.body;
   try {
-
-
-
-
-const validateEmail = await User.findOne({ where: {
-      [Op.or]: [{ email }, { telefono }],
-   } });
+    const validateEmail = await User.findOne({
+      where: {
+        [Op.or]: [{ email }, { telefono }],
+      }
+    });
     if (validateEmail) {
       return res.status(400).json({ message: 'El email o el teléfono ya esta en uso' });
-    } 
-
-
+    }
 
     // Generar un token con expiración
     const token = jwt.sign({ nombre, telefono, email, password }, process.env.JWT_SECRET, { expiresIn: '5h' });
@@ -178,9 +175,11 @@ exports.registerUser = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const { nombre, telefono, email, password } = req.body;
-    const validateEmail = await User.findOne({ where: {
-      [Op.or]: [{ email }, { telefono }],
-   } });
+    const validateEmail = await User.findOne({
+      where: {
+        [Op.or]: [{ email }, { telefono }],
+      }
+    });
     if (validateEmail) {
       return res.status(400).json({ message: 'El email o el teléfono ya esta en uso' });
     }
@@ -217,7 +216,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Contraseña incorrecta" });
     }
     const token = jwt.sign(
-      { id: user.id, role: user.role, email: user.email, nombre: user.nombre, telefono: user.telefono, },
+      { id: user.id, role: user.role, email: user.email, nombre: user.nombre, telefono: user.telefono },
       process.env.JWT_SECRET,
       { expiresIn: "5h" }
     );
@@ -235,13 +234,10 @@ exports.emailPassword = async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "Usuario no encontrado" });
     }
-    if(user.estado === false){
+    if (user.estado === false) {
       return res.status(401).json({ message: "Usuario inactivo" });
 
     }
-
-
-
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '10m' });
 
     const resetLink = `http://10.48.4.159:8081/forgotPass/${token}`;

@@ -1,4 +1,5 @@
 const { body, validationResult } = require('express-validator');
+const { forgotPassword } = require('../controllers/userController');
 
 const validationSchemas = {
     users: {
@@ -29,6 +30,41 @@ const validationSchemas = {
             .optional()
             .isLength({ min: 8 })
             .withMessage('La contraseña debe tener al menos 8 caracteres.')
+    },
+    login: {
+        email: body('email')
+            .notEmpty()
+            .withMessage('El correo electrónico no puede estar vacío.')
+            .isEmail()
+            .withMessage('Debe proporcionar un correo electrónico válido.')
+            .custom(value => {
+                if (!value.endsWith('@socotec.com')) {
+                    throw new Error('El correo electrónico debe ser del dominio @socotec.com');
+                }
+                return true;
+            }),
+        password: body('password')
+            .isLength({ min: 8 })
+            .withMessage('La contraseña debe tener al menos 8 caracteres.')
+    },
+    emailPass: {
+        email: body('email')
+            .notEmpty()
+            .withMessage('El correo electrónico no puede estar vacío.')
+            .isEmail()
+            .withMessage('Debe proporcionar un correo electrónico válido.')
+            .custom(value => {
+                if (!value.endsWith('@socotec.com')) {
+                    throw new Error('El correo electrónico debe ser del dominio @socotec.com');
+                }
+                return true;
+            }),
+    },
+    forgotPassword: {
+        password: body('password')
+            .isLength({ min: 8 })
+            .withMessage('La contraseña debe tener al menos 8 caracteres.'),
+        token: body('token').notEmpty().withMessage("El token no puede estar vacío."),
     },
     inventory: {
         nombreMaterial: body('nombreMaterial')
@@ -102,10 +138,15 @@ const validationSchemas = {
             .isDate()
             .withMessage("La fecha de fin no puede estar vacía."),
     },
-    portfolio:{
+    portfolio: {
         nombre: body("nombre")
             .notEmpty()
             .withMessage("El nombre no puede estar vacío."),
+        cliente: body("cliente").notEmpty().withMessage("El cliente no puede estar vacío."),
+        ubicacion: body("ubicacion").notEmpty().withMessage("La ubicación no puede estar vacío."),
+        presupuesto: body("presupuesto").notEmpty().isFloat().withMessage("El presupuesto no puede estar vacío y debe de ser numeros."),
+        descripcion: body("descripcion").notEmpty().withMessage("La descripcion no puede estar vacia"),
+        superficie: body("superficie").notEmpty().withMessage("La superficie no puede estar vacia "),
     },
     // Agrega más tablas aquí
 };
