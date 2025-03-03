@@ -21,21 +21,10 @@ const Employee = sequelize.define("Employee", {
     },
 },
   cargo: {
-    type: DataTypes.ENUM("Ingeniero", "Director","Laboratorista"),
+    type: DataTypes.ENUM("Talento","Ingeniero", "Director","Laboratorista","Auxiliar","Arquitecto"),
+    defaultValue: "Auxiliar",
     allowNull: false,
   },
-  permiso:{
-    type:DataTypes.ENUM("Vacaciones","Medico","Personal"),
-    allowNull: true,
-  },
-  fechaPermiso:{
-    type:DataTypes.DATEONLY,
-    allowNull:true ,
-  },
-  estadoPermiso: {
-    type: DataTypes.ENUM("Aprovado","Pendiente","Rechazado"),
-    allowNull: true,
-  }
 });
 
 module.exports = Employee;

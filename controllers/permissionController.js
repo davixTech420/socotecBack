@@ -61,3 +61,14 @@ exports.inactivePermission = async (req, res) => {
     res.status(500).json({ error: 'Error al desactivar el permiso' });
   }
 };
+
+
+exports.getMyPermissions = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    const permisos = await Permission.findAll({ where: { solicitanteId: user.id } });
+    res.status(200).json(permisos);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener los permisos' });
+  }
+};

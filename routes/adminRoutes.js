@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 //controladores para endpoints
 const userController = require('../controllers/userController');
+const employeeController = require('../controllers/employeeController');
 const inventoryController = require('../controllers/inventoryController');
 const groupController = require('../controllers/groupController');
 const permissionController = require('../controllers/permissionController');
@@ -29,6 +30,9 @@ router.put("/users/:id", userController.updateUser);
 router.put("/users/:id/active", userController.activateUser);
 router.put("/users/:id/inactive", userController.inactivateUser);
 
+
+router.get("/employee",employeeController.getEmployee);
+router.post("/employee",validate("users"),employeeController.createEmployee);
 
 
 
