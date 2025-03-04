@@ -63,7 +63,7 @@ exports.deleteAccount = async (req, res) => {
     if (await Motion.findAll({ where: { [Op.or]: [
       { cuentaEmisoraId: id },
       { cuentaReceptoraId: id },
-    ], } })) {
+    ], } }).length > 0) {
       return res.status(400).json({ message: "Cuenta no puede ser eliminada porque tiene movimientos asociados" });
     }
     await account.destroy(id);
@@ -81,9 +81,33 @@ exports.inactiveAccount = async (req, res) => {
     if (!account) {
       return res.status(404).json({ message: "Cuenta no encontrada" });
     }
+    if (await Motion.findAll({ where: { [Op.or]: [
+      { cuentaEmisoraId: id },
+      { cuentaReceptoraId: id },
+    ], } }).length > 0) {
+      return res.status(400).json({ message: "Cuenta no puede ser inactivada porque tiene movimientos asociados" });
+    }
     account.estado = false;
     await account.save();
     res.status(200).json({ message: "Cuenta desactivada" });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+}
+
+
+
+exports.activeAccount = async (req, res) => {
+  try{
+    const { id } = req.params;
+    const account = await Account.findByPk(id);
+    if (!account) {
+      return res.status(404).json({ message: "Cuenta no encontrada" });
+    }
+    account.estado = true;
+    await account.save();
+    res.status(200).json({ message: "Cuenta activada" });
+
   } catch (error) {
     res.status(500).json(error);
   }

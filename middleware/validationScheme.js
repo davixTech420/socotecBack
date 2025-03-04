@@ -148,6 +148,21 @@ const validationSchemas = {
         descripcion: body("descripcion").notEmpty().withMessage("La descripcion no puede estar vacia"),
         superficie: body("superficie").notEmpty().withMessage("La superficie no puede estar vacia "),
     },
+
+    account: {
+        nombreCuenta: body("nombreCuenta").isString().matches(/^[A-Za-z\s]+$/).notEmpty().withMessage("El nombre de la cuenta no puede estar vacío."),
+        tipoCuenta: body("tipoCuenta").notEmpty().withMessage("El tipo de cuenta no puede estar vacío."),
+        entidad: body("entidad").notEmpty().withMessage("La entidad no puede estar vacía."),
+        saldo: body("saldo").notEmpty().isNumeric().withMessage("El saldo no puede estar vacío y debe ser un número."),
+
+    },
+    motions :{
+        tipoMovimiento: body("tipoMovimiento").notEmpty().withMessage("El tipo de movimiento no puede estar vacío."),
+        fecha: body("fecha").notEmpty().isDate().withMessage("La fecha no puede estar vacía."),
+        monto: body("monto").notEmpty().isNumeric().withMessage("El monto no puede estar vacío y debe ser un número."),
+        descripcion: body("descripcion").notEmpty().withMessage("La descripción no puede estar vacía."),
+        cuentaEmisoraId: body("cuentaEmisoraId").notEmpty().isNumeric().withMessage("La cuenta emisora no puede estar vacía y debe ser un número."),
+    },
     // Agrega más tablas aquí
 };
 

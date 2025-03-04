@@ -15,14 +15,15 @@ exports.getMotions = async (req, res) => {
 //endpoint para crear un movimiento
 exports.createMotion = async (req, res) => {
   try {
-    const { fecha, monto, descripcion, cuentaEmisoraId, cuentaReceptoraId, estado } = req.body;
+    const {tipoMovimiento, fecha, monto, descripcion, cuentaEmisoraId, cuentaReceptoraId } = req.body;
     const motion = await Motion.create({
+      tipoMovimiento,
       fecha,
       monto,
       descripcion,
       cuentaEmisoraId,
       cuentaReceptoraId,
-      estado,
+      estado : true,
     });
     res.status(201).json({ message: "Movimiento creado", motion });
   } catch (error) {
@@ -64,5 +65,38 @@ exports.deleteMotion = async (req, res) => {
     res.status(200).json({ message: "Movimiento eliminado" });
   } catch (error) {
     res.status(500).json(error);
+  }
+}
+
+exports.inactiveMotion = async (req,res) => {
+  try{
+    const {id} = req.params;
+    const motion = await Motion.findByPk(id);
+    if(!motion){
+      return res.status(404).json({message:"Movimiento no encontrado"});
+    }
+    motion.estado = false;
+    await motion.save();
+    res.status(200).json({message:"Movimiento desactivado"});
+  }catch(error){
+    res.status(500).json({message:"Error interno del servidor",error});
+  }
+}
+
+
+
+exports.activeMotion = async (req,res) => {
+  try{
+    const {id} = req.params;
+    const motion = await Motion.findByPk(id);
+    if(!motion){
+      return res.status(404).json({message:"Movimiento no encontrado"});
+    }
+    motion.estado = true;
+    await motion.save();
+    res.status(200).json({message:"Movimiento activado"});
+  }
+  catch(error){
+    res.status(500).json({message:"Error interno del servidor",error});
   }
 }

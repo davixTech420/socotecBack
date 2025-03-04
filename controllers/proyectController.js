@@ -53,7 +53,7 @@ exports.deleteProyect = async (req, res) => {
     try {
         const id = req.params.id;
 
-        if(await Proyect.findAll({where:{id,estado:true}})){
+        if(await Proyect.findAll({where:{id,estado:true}}).lenght > 0){
             return res.status(400).json({ message: 'No se puede eliminar un proyecto activo' });
         }
         const proyect = await Proyect.destroy({ where: { id } });

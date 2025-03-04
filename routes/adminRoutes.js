@@ -10,16 +10,14 @@ const proyectController = require("../controllers/proyectController");
 const usersGroupController = require("../controllers/usersGroupController");
 const accountController = require("../controllers/accountController");
 const portfolioController = require("../controllers/portfolioController");
+const motionController = require("../controllers/motionController");
 //validacion
 const validate = require("../middleware/validationScheme");
-
-
 
 
 router.get("/dashboard", (req, res) => {
   res.send("admin");
 });
-
 
 
 //rutas para la tabla de usuarios desde el administrador
@@ -31,9 +29,8 @@ router.put("/users/:id/active", userController.activateUser);
 router.put("/users/:id/inactive", userController.inactivateUser);
 
 
-router.get("/employee",employeeController.getEmployee);
-router.post("/employee",validate("users"),employeeController.createEmployee);
-
+router.get("/employee", employeeController.getEmployee);
+router.post("/employee", validate("users"), employeeController.createEmployee);
 
 
 //funcionalidades para el inventario por parte del administrador
@@ -43,7 +40,6 @@ router.get("/inventory", inventoryController.getInventory);
 router.delete("/inventory/:id", inventoryController.deleteInventory);
 router.put("/inventory/:id/active", inventoryController.activeInventory);
 router.put("/inventory/:id/inactive", inventoryController.inactiveInventory);
-
 
 
 //funcionalidades para los grupos de trabajo
@@ -73,7 +69,6 @@ router.get("/groupProyect/:groupId", proyectController.getGroupProyect);
 router.put("/deleteGroupProyect/:groupId", proyectController.deleteGroupProyect);
 
 
-
 //funcionalidades para los permisos
 router.get("/permissions", permissionController.getPermissions);
 router.post("/permissions", validate("permission"), permissionController.createPermission);
@@ -83,15 +78,22 @@ router.put("/permissions/:id/active", permissionController.activePermission);
 router.put("/permissions/:id/inactive", permissionController.inactivePermission);
 
 
-
-
-
 //funcionalidades de las cuentas y movimientos en general las finanzas
-router.post("/accounts", accountController.createAccount);
+router.post("/accounts", validate("account"), accountController.createAccount);
 router.get("/accounts", accountController.getAccounts);
 router.delete("/accounts/:id", accountController.deleteAccount);
-router.put("/accounts/:id", accountController.updateAccount);
+router.put("/accounts/:id", validate("account"), accountController.updateAccount);
+router.put("/accounts/:id/active", accountController.activeAccount);
+router.put("/accounts/:id/inactive", accountController.inactiveAccount);
 
+
+//funcionalidades para los movimientos financieros de las cuentas
+router.post("/motions", validate("motions"), motionController.createMotion);
+router.put("/motions/:id", validate("motions"), motionController.updateMotion);
+router.delete("/motions/:id", motionController.deleteMotion);
+router.get("/motions", motionController.getMotions);
+router.put("/motions/:id/active", motionController.activeMotion);
+router.put("/motions/:id/inactive", motionController.inactiveMotion);
 
 
 //fuincionalidaes para el portafolio
