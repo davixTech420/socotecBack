@@ -122,9 +122,8 @@ const validationSchemas = {
             .isNumeric()
             .withMessage("El solicitante no puede estar vacío y debe ser un numero."),
         aprobadorId: body("aprobadorId")
-            .notEmpty()
             .isNumeric()
-            .withMessage("El aprobador no puede estar vacío y debe ser un numero."),
+            .withMessage("El aprobador debe ser un numero."),
         tipoPermiso: body("tipoPermiso")
             .notEmpty()
             .isIn(["Vacaciones", "Medico", "Personal"])

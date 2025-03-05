@@ -1,3 +1,4 @@
+const { where } = require('sequelize');
 const Permission = require('../models/permission');
 const User = require("../models/user");
 
@@ -24,8 +25,9 @@ exports.createPermission = async (req, res) => {
 
 exports.updatePermission = async (req, res) => {
   try {
-    const { solicitanteId, aprobadorId, tipoPermiso, fechaInicio, fechaFin } = req.body;
-    const permission = await Permission.update({ solicitanteId, aprobadorId, tipoPermiso, fechaInicio, fechaFin });
+    const {id }  = req.params;
+    const { solicitanteId, aprobadorId, tipoPermiso, fechaInicio, fechaFin,estado } = req.body;
+    const permission = await Permission.update({ solicitanteId, aprobadorId, tipoPermiso, fechaInicio, fechaFin,estado } , { where : {id}});
     res.status(200).json(permission);
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar el permiso' });
