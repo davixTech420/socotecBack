@@ -21,7 +21,7 @@ const Employee = sequelize.define("Employee", {
     },
 },
   cargo: {
-    type: DataTypes.ENUM("Talento","Ingeniero", "Director","Laboratorista","Auxiliar","Arquitecto"),
+    type: DataTypes.ENUM("Talento","Ingeniero", "Director","Laboratorista","Auxiliar","Arquitecto","TeamLider","DirectorContable"),
     defaultValue: "Auxiliar",
     allowNull: false,
   },
