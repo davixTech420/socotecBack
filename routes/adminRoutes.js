@@ -98,8 +98,8 @@ router.put("/motions/:id/inactive", motionController.inactiveMotion);
 
 //fuincionalidaes para el portafolio
 router.get("/portfolio", portfolioController.getPortfolio);
-router.post("/portfolio", validate("portfolio"), portfolioController.createPortfolio);
-router.put("/portfolio/:id", validate("portfolio"), portfolioController.updatePortfolio);
+router.post("/portfolio",  portfolioController.createPortfolio);
+router.put("/portfolio/:id", portfolioController.updatePortfolio);
 router.delete("/portfolio/:id", portfolioController.deletePortfolio);
 router.put("/portfolio/:id/active", portfolioController.activePortfolio);
 router.put("/portfolio/:id/inactive", portfolioController.inactivePortfolio);
