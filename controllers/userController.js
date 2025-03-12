@@ -5,7 +5,7 @@ const Permissions = require("../models/permission");
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const CryptoJS = require("crypto-js");
+
 const nodemailer = require('nodemailer');
 const { google } = require('googleapis');
 const { Op } = require("sequelize");

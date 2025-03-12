@@ -1,9 +1,7 @@
-const { beyondcorp } = require("googleapis/build/src/apis/beyondcorp");
 const Employee = require("../models/employee");
 const User = require("../models/user");
 const bcrypt = require('bcryptjs');
-
-
+const { Op } = require("sequelize");
 //actualizar empleado
 exports.updateEmployee = async (req, res) => {
   try {
@@ -23,14 +21,19 @@ exports.updateEmployee = async (req, res) => {
 
 
 
-
-
-
-
-
 exports.createEmployee = async (req, res) => {
   try {
     const { nombre, telefono, email, password,cargo } = req.body;
+    if(await User.findOne({
+      where: {
+        [Op.or]: [
+          { email },
+          { telefono }
+        ]
+      }
+    })){
+      return res.status(400).json({ message : "El Email o Telefono Ya Esta Registrado"});
+    }
     const user = await User.create({
       nombre,
       telefono,
@@ -55,7 +58,6 @@ exports.createEmployee = async (req, res) => {
         updatedAt: user.updatedAt,
         cargo: cargo,
     }
-console.log(response);
     res.status(201).json({ message: "Empleado creado",user:response });
   } catch (error) {
     console.log(error);
@@ -63,10 +65,11 @@ console.log(response);
   }
 };
 
+
+
 //obtener empleado
 exports.getEmployee = async (req, res) => {
     try {
-      
       const users = await User.findAll({
         where: { role: "employee" },
       });
@@ -86,7 +89,6 @@ exports.getEmployee = async (req, res) => {
           cargo: employee ? employee.cargo : null, 
         };
       });
-  
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
