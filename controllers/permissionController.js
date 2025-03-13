@@ -1,6 +1,8 @@
-const { where } = require('sequelize');
+const { Op } = require("sequelize");
 const Permission = require('../models/permission');
 const User = require("../models/user");
+const UserGroup = require("../models/usersGroup");
+
 
 exports.getPermissions = async (req, res) => {
   try {
@@ -72,5 +74,41 @@ exports.getMyPermissions = async (req, res) => {
     res.status(200).json(permisos);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener los permisos' });
+  }
+};
+
+
+exports.getPermissionsByGroup = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1️⃣ Buscar los grupos a los que pertenece el usuario
+    const userGroups = await UserGroup.findAll({
+      where: { userId: id },
+      attributes: ['groupId'],
+    });
+
+    if (!userGroups.length) {
+      return res.status(404).json({ message: 'El usuario no pertenece a ningún grupo' });
+    }
+
+    const groupIds = userGroups.map((ug) => ug.groupId);
+    // 2️⃣ Buscar todos los usuarios que pertenecen a los mismos grupos
+    const usersInGroups = await UserGroup.findAll({
+      where: { groupId: groupIds },
+      attributes: ['userId'],
+      group: ['userId'],
+    });
+
+    const userIds = usersInGroups.map((ug) => ug.userId);
+
+    // 3️⃣ Obtener los permisos de esos usuarios
+    const permissions = await Permission.findAll({
+      where: { solicitanteId: userIds },
+    });
+    res.status(200).json(permissions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener los permisos',error });
   }
 };
