@@ -162,9 +162,9 @@ exports.registerUser = async (req, res) => {
         userId: user.id,
       });
       /*  res.status(200).json({ message: 'Usuario creado exitosamente' }); */
-      res.redirect("http://10.48.5.39:8081/singIn");
+      res.redirect("http://10.48.5.67:8081/singIn");
     } catch (error) {
-      res.redirect("http://10.48.5.39:8081/singIn");
+      res.redirect("http://10.48.5.67:8081/singIn");
     }
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
@@ -235,7 +235,6 @@ exports.login = async (req, res) => {
         cargo = employee.cargo; // Asignar el cargo del empleado
       }
     }
-
     const token = jwt.sign(
       { id: user.id, role: user.role, email: user.email, nombre: user.nombre, telefono: user.telefono,cargo:cargo },
       process.env.JWT_SECRET,
@@ -246,7 +245,6 @@ exports.login = async (req, res) => {
     return res.status(500).json({ message: "Error en el login", error });
   }
 };
-
 
 exports.emailPassword = async (req, res) => {
   const { email } = req.body;
@@ -261,7 +259,7 @@ exports.emailPassword = async (req, res) => {
     }
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '10m' });
 
-    const resetLink = `http://10.48.5.39:8081/forgotPass/${token}`;
+    const resetLink = `http://10.48.5.67:8081/forgotPass/${token}`;
     //autenticacion para enviar los gmails/
     const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
     oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
