@@ -11,6 +11,8 @@ const usersGroupController = require("../controllers/usersGroupController");
 const accountController = require("../controllers/accountController");
 const portfolioController = require("../controllers/portfolioController");
 const motionController = require("../controllers/motionController");
+const taskController = require("../controllers/taskController");
+
 //validacion
 const validate = require("../middleware/validationScheme");
 
@@ -31,6 +33,15 @@ router.put("/users/:id/inactive", userController.inactivateUser);
 
 router.get("/employee", employeeController.getEmployee);
 router.post("/employee", validate("users"), employeeController.createEmployee);
+
+//funciont in task in the group or mygroup
+router.get("/task", taskController.getTask);
+router.post("/task",taskController.createTask);
+router.put("/task/:id", taskController.updateTask);
+router.delete("/task/:id", taskController.deleteTask);
+router.put("/task/:id/active", taskController.activeTask);  
+router.put("/task/:id/inactive", taskController.inactiveTask);
+
 
 
 //funcionalidades para el inventario por parte del administrador

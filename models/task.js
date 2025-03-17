@@ -2,8 +2,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/bd");
 const User = require('./user');
-const Proyect = require('./proyect');
-const Group = require("./group");
 
 const Task = sequelize.define("Task", {
   id: {
@@ -21,7 +19,7 @@ const Task = sequelize.define("Task", {
       foreignKey:'asignadoId'
     },
 },
-tarea:{
+titulo:{
     type: DataTypes.STRING,
     allowNull: false,
 },
