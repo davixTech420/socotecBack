@@ -71,7 +71,7 @@ exports.activeProyect = async (req, res) => {
         const proyect = await Proyect.update({ estado: true }, { where: { id } });
         res.status(200).json(proyect);
     } catch (error) {
-        res.status(500).json({ error: 'Error al activar el proyecto' });
+        res.status(500).json({ error: 'Error al activar el proyecto',error });
     }
 };
 
