@@ -13,12 +13,36 @@ const portfolioController = require("../controllers/portfolioController");
 const motionController = require("../controllers/motionController");
 const taskController = require("../controllers/taskController");
 
+const User = require("../models/user");
+const Account = require("../models/account");
+const Inventory = require("../models/inventory");
+
+
+
 //validacion
 const validate = require("../middleware/validationScheme");
 
+router.get("/dashboard", async (req,res) => {
+  try {
+    const users = await User.findAll();
+    const account  = await Account.findAll();
+    const inventario = await Inventory.findAll();
 
-router.get("/dashboard", (req, res) => {
-  res.send("admin");
+    
+    
+
+
+    const data = {
+      users: users,
+      accounts : account,
+      inventarios : inventario
+    };
+    console.log(data);
+    res.json(data); // Envía los datos como respuesta JSON
+  } catch (error) {
+    console.error('Error al obtener los usuarios:', error);
+    res.status(500).json({ error: 'Error al obtener los usuarios' });
+  }
 });
 
 
@@ -34,6 +58,7 @@ router.put("/users/:id/inactive", userController.inactivateUser);
 router.get("/employee", employeeController.getEmployee);
 router.post("/employee", validate("users"), employeeController.createEmployee);
 
+
 //funciont in task in the group or mygroup
 router.get("/task", taskController.getTask);
 router.post("/task",taskController.createTask);
@@ -41,7 +66,6 @@ router.put("/task/:id", taskController.updateTask);
 router.delete("/task/:id", taskController.deleteTask);
 router.put("/task/:id/active", taskController.activeTask);  
 router.put("/task/:id/inactive", taskController.inactiveTask);
-
 
 
 //funcionalidades para el inventario por parte del administrador
