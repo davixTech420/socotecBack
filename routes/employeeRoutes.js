@@ -6,6 +6,10 @@ const usersGroupController = require("../controllers/usersGroupController");
 const taskController = require("../controllers/taskController");
 
 
+
+router.get("/dashboard",async (req,res) => {
+
+});
 router.get("/myPermissions/:id", permissionController.getMyPermissions);
 
 router.get("/myGroup/:id",usersGroupController.getUsersGroup);

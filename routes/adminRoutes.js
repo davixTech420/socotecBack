@@ -16,6 +16,7 @@ const taskController = require("../controllers/taskController");
 const User = require("../models/user");
 const Account = require("../models/account");
 const Inventory = require("../models/inventory");
+const Motion = require("../models/motion");
 
 
 
@@ -27,18 +28,14 @@ router.get("/dashboard", async (req,res) => {
     const users = await User.findAll();
     const account  = await Account.findAll();
     const inventario = await Inventory.findAll();
-
-    
-    
-
-
+    const motion = await Motion.findAll();
     const data = {
       users: users,
       accounts : account,
-      inventarios : inventario
+      inventarios : inventario,
+      movimientos: motion
     };
-    console.log(data);
-    res.json(data); // Envía los datos como respuesta JSON
+    res.json(data); 
   } catch (error) {
     console.error('Error al obtener los usuarios:', error);
     res.status(500).json({ error: 'Error al obtener los usuarios' });
