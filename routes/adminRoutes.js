@@ -12,6 +12,7 @@ const accountController = require("../controllers/accountController");
 const portfolioController = require("../controllers/portfolioController");
 const motionController = require("../controllers/motionController");
 const taskController = require("../controllers/taskController");
+const ticketController = require("../controllers/ticketController");
 
 const User = require("../models/user");
 const Account = require("../models/account");
@@ -51,10 +52,8 @@ router.put("/users/:id", userController.updateUser);
 router.put("/users/:id/active", userController.activateUser);
 router.put("/users/:id/inactive", userController.inactivateUser);
 
-
 router.get("/employee", employeeController.getEmployee);
 router.post("/employee", validate("users"), employeeController.createEmployee);
-
 
 //funciont in task in the group or mygroup
 router.get("/task", taskController.getTask);
@@ -64,6 +63,11 @@ router.delete("/task/:id", taskController.deleteTask);
 router.put("/task/:id/active", taskController.activeTask);  
 router.put("/task/:id/inactive", taskController.inactiveTask);
 
+//function is the ticket it
+router.post("/ticket",ticketController.createTicket);
+router.delete("/ticket/:id",ticketController.deleteTicket);
+router.put("/ticket/:id",ticketController.updateTicket);
+router.get("/ticket",ticketController.getTicket);
 
 //funcionalidades para el inventario por parte del administrador
 router.post("/inventory", validate("inventory"), inventoryController.createInventory);

@@ -17,6 +17,7 @@ const Account = require("./models/account");
 const Motion = require("./models/motion");
 const Portfolio = require("./models/portfolio");
 const Task = require("./models/task");
+const Ticket = require("./models/ticket");
 const authMiddleware = require('./middleware/authMiddleware');
 const roleMiddleware = require("./middleware/roleMiddleware");
 const port = 3000;
