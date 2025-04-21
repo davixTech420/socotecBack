@@ -13,6 +13,7 @@ const portfolioController = require("../controllers/portfolioController");
 const motionController = require("../controllers/motionController");
 const taskController = require("../controllers/taskController");
 const ticketController = require("../controllers/ticketController");
+const hiringController = require("../controllers/hiringController");
 
 const User = require("../models/user");
 const Account = require("../models/account");
@@ -54,6 +55,14 @@ router.put("/users/:id/inactive", userController.inactivateUser);
 
 router.get("/employee", employeeController.getEmployee);
 router.post("/employee", validate("users"), employeeController.createEmployee);
+ 
+
+//functions for hiring 
+router.get("/hiring",hiringController.getHiring);
+router.post("/hiring",hiringController.createHiring);
+router.put("/hiring/:id",hiringController.updateHiring);
+router.delete("/hiring/:id",hiringController.deleteHiring);
+
 
 //funciont in task in the group or mygroup
 router.get("/task", taskController.getTask);

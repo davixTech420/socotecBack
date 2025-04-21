@@ -1,6 +1,17 @@
-const { where } = require("sequelize");
 const Ticket = require("../models/ticket");
 
+
+
+exports.getMyTickets = async (req,res) => {
+  try{
+    const { id } = req.params;
+    const tickets = await Ticket.findAll({ where: { userId: id } });
+    res.status(200).json(tickets);
+
+  }catch(error){
+    res.status(500).json({ message: "Error Al Obtener Los Tickets", error });
+  }
+}
 exports.getTicket = async (req, res) => {
   try {
     const ticket = await Ticket.findAll();
@@ -29,8 +40,8 @@ exports.createTicket = async (req, res) => {
 exports.updateTicket = async (req, res) => {
   try {
     const { id } = req.params;
-    const { remoto, sitio, descripcion } = req.body;
-    const ticket = Ticket.update({ remoto, sitio, descripcion }, { where: id });
+    const { remoto, sitio, descripcion,estado } = req.body;
+    const ticket = Ticket.update({ remoto, sitio, descripcion,estado }, { where: {id} });
     res.status(200).json({ message: "Actualizado Con Exito", ticket });
   } catch (error) {
     res.status(500).json({ message: "Error Al Actulizar Ticket" });
