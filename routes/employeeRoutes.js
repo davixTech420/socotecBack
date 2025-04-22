@@ -6,6 +6,7 @@ const usersGroupController = require("../controllers/usersGroupController");
 const taskController = require("../controllers/taskController");
 const ticketController = require("../controllers/ticketController");
 const hiringController = require("../controllers/hiringController");
+const AssignmentController = require("../controllers/assignmentPPEController");
 
 
 
@@ -17,7 +18,6 @@ router.get("/myPermissions/:id", permissionController.getMyPermissions);
 router.get("/myGroup/:id",usersGroupController.getUsersGroup);
 
 router.get("/permissionsByGroup/:id",permissionController.getPermissionsByGroup);
-
 
 //rutas para asignar tareas
 router.post("/task",taskController.createTask);
@@ -36,5 +36,9 @@ router.get("/hiring",hiringController.getHiring);
 router.post("/hiring",hiringController.createHiring);
 router.put("/hiring/:id",hiringController.updateHiring);
 router.delete("/hiring/:id",hiringController.deleteHiring);
+
+
+//routes for ppe assignment
+router.get("/assignment",AssignmentController.getAssignment);
 
 module.exports = router;

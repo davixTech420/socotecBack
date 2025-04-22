@@ -19,6 +19,7 @@ const Portfolio = require("./models/portfolio");
 const Task = require("./models/task");
 const Ticket = require("./models/ticket");
 const Hiring = require("./models/hiring");
+const AssignmentPPE = require("./models/assignmentsPPE");
 const authMiddleware = require('./middleware/authMiddleware');
 const roleMiddleware = require("./middleware/roleMiddleware");
 const port = 3000;

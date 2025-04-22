@@ -73,7 +73,7 @@ salario: {
   },
   cita:{
     allowNull:true,
-    type:DataTypes.DATE,
+    type:DataTypes.DATEONLY,
   },
   nota:{
     allowNull:true,
