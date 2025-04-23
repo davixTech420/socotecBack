@@ -36,12 +36,12 @@ app.use("/api/public", publicRoutes);
 //rutas para el empleado validando autenticacion con token y con roles
 app.use("/api/admin",adminRoutes,authMiddleware,roleMiddleware("admin"));
 
-app.use("/api/employee",employeeRoutes ,authMiddleware,roleMiddleware("employee") );
+app.use("/api/employee",employeeRoutes ,authMiddleware,roleMiddleware("employee"));
 
 //iniciso del servidor ojo el force en true elimina toda la base de datos
 sequelize.sync({ force:false,alter:false }).then(() => {
   app.listen(port, () => {
-    console.log('Servidor corriendo en el puerto ', port);
+    console.log('Servidor corriendo en el puerto', port);
   });
 }).catch(error => {
   console.error('Error al sincronizar la base de datos:', error);

@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const validate = require("../middleware/validationScheme");
+
 const permissionController = require("../controllers/permissionController");
 const usersGroupController = require("../controllers/usersGroupController");
 const taskController = require("../controllers/taskController");
 const ticketController = require("../controllers/ticketController");
 const hiringController = require("../controllers/hiringController");
 const AssignmentController = require("../controllers/assignmentPPEController");
+const InventoryController = require("../controllers/inventoryController");
+const userController = require("../controllers/userController");
 
 
 
@@ -40,5 +42,16 @@ router.delete("/hiring/:id",hiringController.deleteHiring);
 
 //routes for ppe assignment
 router.get("/assignment",AssignmentController.getAssignment);
+router.post("/assignment",AssignmentController.createAssignment);
+router.put("/assignment/:id",AssignmentController.updateAssignment);
+router.delete("/assignment/:id",AssignmentController.deleteAssignment);
+
+
+//router for inventory
+router.get("/inventory",InventoryController.getActiveInventory);
+
+//routes for users
+router.get("/activeUsers",userController.getActiveUsers);
+
 
 module.exports = router;

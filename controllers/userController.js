@@ -426,6 +426,16 @@ exports.getUsers = async (req, res) => {
 }
 
 
+exports.getActiveUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({where:{estado:true}});
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+}
+
+
 //endpoint para eliminar un  usuario
 exports.deleteUser = async (req, res) => {
   try {

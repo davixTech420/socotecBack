@@ -1,46 +1,17 @@
 const AssignmentPPE = require("../models/assignmentsPPE");
 const User = require("../models/user");
 const Inventory = require("../models/inventory");
-/* exports.getAssignment = async (req,res) => {
-  try {
-    const Assignment = await AssignmentPPE.findAll();
-    res.status(200).json(Assignment);
-  } catch (error) {
-    res.status(500).json({ message: "Ha Ocurrido Un Error Al Obtener PPE" });
-  }
-}; */
-exports.getAssignment = async (req, res) => {
+
+  exports.getAssignment = async (req,res) => {
     try {
       const assignments = await AssignmentPPE.findAll();
-  
-      const results = await Promise.all(
-        assignments.map(async (a) => {
-          // Buscar nombres manualmente
-          const usuario = await User.findByPk(a.userId);
-          const asignador = await User.findByPk(a.asignadorId);
-          const material = await Inventory.findByPk(a.inventoryId);
-  
-          return {
-            id: a.id,
-            inventoryId: material?.nombreMaterial,
-            userId: usuario?.nombre,
-            asignadorId: asignador?.nombre,
-            estado: a.estado,
-            fechaConfirmacion: a.fechaConfirmacion,
-            fechaRetorno: a.fechaRetorno,
-            fotoppe: a.fotoppe,
-            createdAt: a.createdAt,
-            updatedAt: a.updatedAt
-          };
-        })
-      );
-  
-      res.status(200).json(results);
+      res.status(200).json(assignments);
+
+      
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Ha Ocurrido Un Error Al Obtener PPE" });
+      res.status(500).json({message:"Ha Ocurrido Un Error"});
     }
-  };
+  }
 
 exports.createAssignment = async (req, res) => {
   try {
@@ -58,16 +29,16 @@ exports.createAssignment = async (req, res) => {
       inventoryId,
       userId,
       asignadorId,
-      fechaConfirmacion,
-      fechaRetorno,
-      fotoppe,
-      estado,
+      fechaConfirmacion:fechaConfirmacion === "" ? null : fechaConfirmacion,
+      fechaRetorno: fechaRetorno === "" ? null : fechaRetorno,
+      fotoppe:fotoppe === "" ? null :fotoppe,
+      estado:"Asignado"
     });
     res.status(201).json({ message: "Se Creo Con Exito PPE", assignment });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Ha Ocurrido Un Error Al Crear PPE", error });
+      .json({ message: "Ha Ocurrido Un Error Al Crear PPE",body:req.body,error });
   }
 };
 

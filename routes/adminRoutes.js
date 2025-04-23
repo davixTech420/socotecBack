@@ -14,6 +14,7 @@ const motionController = require("../controllers/motionController");
 const taskController = require("../controllers/taskController");
 const ticketController = require("../controllers/ticketController");
 const hiringController = require("../controllers/hiringController");
+const AssignmentController = require("../controllers/assignmentPPEController");
 
 const User = require("../models/user");
 const Account = require("../models/account");
@@ -99,7 +100,7 @@ router.get("/groupNotProyect", groupController.getGroupNotProyect);
 
 //funcionalidades para los usuarios de un grupo
 router.get("/userGroup/:id", usersGroupController.getUsersGroup);
-router.delete("/userGroup/:id", usersGroupController.deleteUsersGroup)
+router.delete("/userGroup/:id", usersGroupController.deleteUsersGroup);
 router.get("/userNotGroup", usersGroupController.getUsersNotGroup);
 
 
@@ -148,6 +149,12 @@ router.put("/portfolio/:id", portfolioController.updatePortfolio);
 router.delete("/portfolio/:id", portfolioController.deletePortfolio);
 router.put("/portfolio/:id/active", portfolioController.activePortfolio);
 router.put("/portfolio/:id/inactive", portfolioController.inactivePortfolio);
+
+//routes for ppe assignment personal
+router.get("/assignment",AssignmentController.getAssignment);
+router.post("/assignment",AssignmentController.createAssignment);
+router.put("/assignment/:id",AssignmentController.updateAssignment);
+router.delete("/assignment/:id",AssignmentController.deleteAssignment);
 
 
 module.exports = router;

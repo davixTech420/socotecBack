@@ -41,15 +41,17 @@ asignadorId: {
   fechaConfirmacion: {
     allowNull: true,
     type: DataTypes.DATEONLY,
+    defaultValue:null
   },
   fechaRetorno: {
     type: DataTypes.DATEONLY,
     allowNull: true,
+    defaultValue:null
 },
   fotoppe: {
     allowNull: true,
     type: DataTypes.STRING,
-    unique: true
+    unique: false
   },
   estado: {
     type: DataTypes.ENUM("Asignado","Confirmado","Devuelto"),
