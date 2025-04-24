@@ -53,6 +53,7 @@ router.delete("/users/:id", userController.deleteUser);
 router.put("/users/:id", userController.updateUser);
 router.put("/users/:id/active", userController.activateUser);
 router.put("/users/:id/inactive", userController.inactivateUser);
+router.get("/usersCampo",userController.getCampoUsers);
 
 router.get("/employee", employeeController.getEmployee);
 router.post("/employee", validate("users"), employeeController.createEmployee);
@@ -60,8 +61,8 @@ router.post("/employee", validate("users"), employeeController.createEmployee);
 
 //functions for hiring 
 router.get("/hiring",hiringController.getHiring);
-router.post("/hiring",hiringController.createHiring);
-router.put("/hiring/:id",hiringController.updateHiring);
+router.post("/hiring",validate("hiring"),hiringController.createHiring);
+router.put("/hiring/:id",validate("hiring"),hiringController.updateHiring);
 router.delete("/hiring/:id",hiringController.deleteHiring);
 
 

@@ -435,6 +435,26 @@ exports.getActiveUsers = async (req, res) => {
   }
 }
 
+exports.getCampoUsers = async (req,res) => {
+  try {
+    const employees = await Employee.findAll({
+      where: {
+        cargo: "Laboratorista",
+      }
+    });
+    
+    const userIds = employees.map(emp => emp.userId);
+    const campoUsers = await User.findAll({
+      where: {
+        id: userIds
+      }
+    });
+    res.status(200).json(campoUsers);
+  } catch (error) {
+    res.status(500).json({message:"Ha Ocurrido Un Error Al Obtener Los Usuarios",error});
+  }
+}
+
 
 //endpoint para eliminar un  usuario
 exports.deleteUser = async (req, res) => {

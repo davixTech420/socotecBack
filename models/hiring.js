@@ -34,6 +34,7 @@ const Hiring = sequelize.define("Hiring", {
       "Ingeniero",
       "Director",
       "Laboratorista",
+      "Campo",
       "Auxiliar",
       "Arquitecto",
       "TeamLider",
@@ -51,7 +52,7 @@ const Hiring = sequelize.define("Hiring", {
       "Prestación Servicios",
       "Practicante"
     ),
-    defaultValue: "Fijo",
+    defaultValue: "Indefinido",
   },
   estado: {
     allowNull: false,

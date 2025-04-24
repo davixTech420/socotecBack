@@ -45,13 +45,14 @@ router.get("/assignment",AssignmentController.getAssignment);
 router.post("/assignment",AssignmentController.createAssignment);
 router.put("/assignment/:id",AssignmentController.updateAssignment);
 router.delete("/assignment/:id",AssignmentController.deleteAssignment);
-
+router.get("/myAssignment/:id",AssignmentController.getMyAssignment);
 
 //router for inventory
 router.get("/inventory",InventoryController.getActiveInventory);
 
 //routes for users
 router.get("/activeUsers",userController.getActiveUsers);
+router.get("/usersCampo",userController.getCampoUsers);
 
 
 module.exports = router;

@@ -59,5 +59,4 @@ asignadorId: {
     allowNull: false,
   }
 });
-
 module.exports = AssignmentPPE;

@@ -1,17 +1,28 @@
 const AssignmentPPE = require("../models/assignmentsPPE");
 const User = require("../models/user");
 const Inventory = require("../models/inventory");
+const Employee = require("../models/employee");
 
   exports.getAssignment = async (req,res) => {
     try {
       const assignments = await AssignmentPPE.findAll();
       res.status(200).json(assignments);
-
-      
     } catch (error) {
       res.status(500).json({message:"Ha Ocurrido Un Error"});
     }
   }
+
+  exports.getMyAssignment = async (req,res) => {
+    try {
+      const {id} = req.params;
+      const employee = await AssignmentPPE.findAll({where:{userId:id}});
+      res.status(200).json(employee);
+    } catch (error) {
+      res.status(500).json({message:"Ha Ocurrido Un Erro Al Obtener PPE",error});
+    }
+  }
+
+  
 
 exports.createAssignment = async (req, res) => {
   try {

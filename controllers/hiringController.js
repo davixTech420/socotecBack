@@ -1,4 +1,7 @@
 const Hiring = require("../models/hiring");
+const nodemailer = require('nodemailer');
+const { google } = require('googleapis');
+const { Op } = require("sequelize");
 
 exports.getHiring = async (req, res) => {
   try {
