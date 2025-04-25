@@ -31,6 +31,7 @@ app.use(bodyParser.json());
 
 
 app.use("/images",express.static("public/images"));
+app.use("/ppe",express.static("public/ppe"));
 //rutas del backend o endpoints rutas publicas
 app.use("/api/public", publicRoutes);
 //rutas para el empleado validando autenticacion con token y con roles

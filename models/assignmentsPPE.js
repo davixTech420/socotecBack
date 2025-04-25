@@ -50,8 +50,12 @@ asignadorId: {
 },
   fotoppe: {
     allowNull: true,
-    type: DataTypes.STRING,
+    type: DataTypes.JSON,
     unique: false
+  },
+  fotoRetorno:{
+    allowNull:true,
+    type:DataTypes.JSON,
   },
   estado: {
     type: DataTypes.ENUM("Asignado","Confirmado","Devuelto"),

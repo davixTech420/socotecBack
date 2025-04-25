@@ -440,13 +440,15 @@ exports.getCampoUsers = async (req,res) => {
     const employees = await Employee.findAll({
       where: {
         cargo: "Laboratorista",
+       
       }
     });
     
     const userIds = employees.map(emp => emp.userId);
     const campoUsers = await User.findAll({
       where: {
-        id: userIds
+        id: userIds,
+        estado:true,
       }
     });
     res.status(200).json(campoUsers);
