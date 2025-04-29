@@ -9,6 +9,7 @@ const hiringController = require("../controllers/hiringController");
 const AssignmentController = require("../controllers/assignmentPPEController");
 const InventoryController = require("../controllers/inventoryController");
 const userController = require("../controllers/userController");
+const validate = require('../middleware/validationScheme');
 
 
 
@@ -22,15 +23,15 @@ router.get("/myGroup/:id",usersGroupController.getUsersGroup);
 router.get("/permissionsByGroup/:id",permissionController.getPermissionsByGroup);
 
 //rutas para asignar tareas
-router.post("/task",taskController.createTask);
+router.post("/task",validate("task"),taskController.createTask);
 router.get("/taskMyGroup/:id",taskController.getTaskMyGroup);
 
 //routes for tickets employess
 router.get("/myTickets/:id",ticketController.getMyTickets);
 
 //routes for tickets
-router.post("/ticket",ticketController.createTicket);
-router.put("/ticket/:id",ticketController.updateTicket);
+router.post("/ticket",validate("ticket"),ticketController.createTicket);
+router.put("/ticket/:id",validate("ticket"),ticketController.updateTicket);
 router.delete("/ticket/:id",ticketController.deleteTicket);
 
 //routes for hiring or candidate
@@ -42,8 +43,8 @@ router.delete("/hiring/:id",hiringController.deleteHiring);
 
 //routes for ppe assignment
 router.get("/assignment",AssignmentController.getAssignment);
-router.post("/assignment",AssignmentController.createAssignment);
-router.put("/assignment/:id",AssignmentController.updateAssignment);
+router.post("/assignment",validate("assignment"),AssignmentController.createAssignment);
+router.put("/assignment/:id",validate("assignment"),AssignmentController.updateAssignment);
 router.delete("/assignment/:id",AssignmentController.deleteAssignment);
 router.get("/myAssignment/:id",AssignmentController.getMyAssignment);
 

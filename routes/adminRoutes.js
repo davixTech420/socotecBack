@@ -68,16 +68,16 @@ router.delete("/hiring/:id",hiringController.deleteHiring);
 
 //funciont in task in the group or mygroup
 router.get("/task", taskController.getTask);
-router.post("/task",taskController.createTask);
-router.put("/task/:id", taskController.updateTask);
+router.post("/task",validate("task"),taskController.createTask);
+router.put("/task/:id", validate("task"),taskController.updateTask);
 router.delete("/task/:id", taskController.deleteTask);
 router.put("/task/:id/active", taskController.activeTask);  
 router.put("/task/:id/inactive", taskController.inactiveTask);
 
 //function is the ticket it
-router.post("/ticket",ticketController.createTicket);
+router.post("/ticket",validate("ticket"),ticketController.createTicket);
 router.delete("/ticket/:id",ticketController.deleteTicket);
-router.put("/ticket/:id",ticketController.updateTicket);
+router.put("/ticket/:id",validate("ticket"),ticketController.updateTicket);
 router.get("/ticket",ticketController.getTicket);
 
 //funcionalidades para el inventario por parte del administrador
@@ -145,17 +145,16 @@ router.put("/motions/:id/inactive", motionController.inactiveMotion);
 
 //fuincionalidaes para el portafolio
 router.get("/portfolio", portfolioController.getPortfolio);
-router.post("/portfolio",  portfolioController.createPortfolio);
-router.put("/portfolio/:id", portfolioController.updatePortfolio);
+router.post("/portfolio", portfolioController.createPortfolio);
+router.put("/portfolio/:id",portfolioController.updatePortfolio);
 router.delete("/portfolio/:id", portfolioController.deletePortfolio);
 router.put("/portfolio/:id/active", portfolioController.activePortfolio);
 router.put("/portfolio/:id/inactive", portfolioController.inactivePortfolio);
 
 //routes for ppe assignment personal
 router.get("/assignment",AssignmentController.getAssignment);
-router.post("/assignment",AssignmentController.createAssignment);
-router.put("/assignment/:id",AssignmentController.updateAssignment);
+router.post("/assignment",validate("assignment"),AssignmentController.createAssignment);
+router.put("/assignment/:id",validate("assignment"),AssignmentController.updateAssignment);
 router.delete("/assignment/:id",AssignmentController.deleteAssignment);
-
 
 module.exports = router;

@@ -74,8 +74,8 @@ exports.createPortfolio = [
 
             res.status(200).json({ proyect });
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: 'Error al crear el proyecto' });
+            console.log(error);
+            res.status(500).json({ message: 'Error al crear el proyecto',error });
         }
     },
 ];
