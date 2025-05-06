@@ -1,5 +1,4 @@
 const { body, validationResult } = require("express-validator");
-const { forgotPassword } = require("../controllers/userController");
 
 const validationSchemas = {
   users: {
@@ -283,9 +282,6 @@ const validationSchemas = {
     descripcion: body("descripcion")
       .notEmpty()
       .withMessage("la descripcion no puede estar vacío."),
-    estado: body("estado")
-      .notEmpty()
-      .withMessage("El estado no puede estar vacio"),
   },
   task: {
     asignadorId: body("asignadoId")
