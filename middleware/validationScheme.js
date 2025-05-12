@@ -295,9 +295,6 @@ const validationSchemas = {
     descripcion: body("descripcion")
       .notEmpty()
       .withMessage("El asignador no puede estar vacío."),
-    estado: body("estado")
-      .notEmpty()
-      .withMessage("El estado no puede estar vacio"),
   },
   // Agrega más tablas aquí
 };
