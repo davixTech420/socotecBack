@@ -47,7 +47,6 @@ exports.createPortfolio = [
         superficie,
         detalle,
       } = req.body;
-
       if ((await Portfolio.findAll({ where: { nombre } })).length > 0) {
         return res
           .status(400)
@@ -80,7 +79,6 @@ exports.createPortfolio = [
         imagenes, // Guarda las rutas de las imágenes
         estado: true,
       });
-
       res.status(200).json({ proyect });
     } catch (error) {
       console.log(error);
