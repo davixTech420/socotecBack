@@ -22,6 +22,7 @@ router.get("/myGroup/:id",usersGroupController.getUsersGroup);
 
 //rutas para los permisos de empleados
 router.get("/myPermissions/:id", permissionController.getMyPermissions);
+router.get("/permission", permissionController.getPermissions);
 router.get("/permissionsByGroup/:id",permissionController.getPermissionsByGroup);
 router.post("/permissions", validate("permission"), permissionController.createPermission);
 router.put("/permissions/:id", validate("permission"), permissionController.updatePermission);
