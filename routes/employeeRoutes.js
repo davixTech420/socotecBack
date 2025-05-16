@@ -9,6 +9,7 @@ const hiringController = require("../controllers/hiringController");
 const AssignmentController = require("../controllers/assignmentPPEController");
 const InventoryController = require("../controllers/inventoryController");
 const userController = require("../controllers/userController");
+const apiqueController = require("../controllers/apiqueController");
 const validate = require('../middleware/validationScheme');
 
 
@@ -19,6 +20,14 @@ router.get("/dashboard",async (req,res) => {
 
 
 router.get("/myGroup/:id",usersGroupController.getUsersGroup);
+
+//rutas para el apique
+
+router.get("/apique",apiqueController.getApiques);
+router.post("/apique",apiqueController.createApique);
+router.delete("/apique/:id",apiqueController.deleteApique);
+
+
 
 //rutas para los permisos de empleados
 router.get("/myPermissions/:id", permissionController.getMyPermissions);
