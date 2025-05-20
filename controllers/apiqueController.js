@@ -72,7 +72,7 @@ exports.createApique = [
         profundidadApique,
         imagenes,
         observaciones,
-        estado: true,
+        
       });
       res.status(200).json({ apiques });
     } catch (error) {
@@ -154,7 +154,6 @@ exports.updateApique = [
         profundidadApique,
         imagenes:updatedImages,
         observaciones,
-        estado: true,
       });
       res.status(200).json({ message: "Proyecto actualizado", Apique });
     } catch (error) {
