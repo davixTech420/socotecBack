@@ -48,11 +48,9 @@ exports.createPortfolio = [
         detalle,
       } = req.body;
       if ((await Portfolio.findAll({ where: { nombre } })).length > 0) {
-        return res
-          .status(400)
-          .json({
-            message: "El nombre del proyecto en el portafolio ya existe",
-          });
+        return res.status(400).json({
+          message: "El nombre del proyecto en el portafolio ya existe",
+        });
       }
 
       // Verifica si hay archivos subidos
@@ -79,9 +77,8 @@ exports.createPortfolio = [
         imagenes, // Guarda las rutas de las imágenes
         estado: true,
       });
-      res.status(200).json({ proyect });
+      res.status(200).json({ proyect, message: req.body.imagenes });
     } catch (error) {
-      console.log(error);
       res.status(500).json({ message: "Error al crear el proyecto", error });
     }
   },
@@ -212,11 +209,9 @@ exports.deletePortfolio = async (req, res) => {
       return res.status(404).json({ error: "No se encontró el registro" });
     }
     if (portafolio.estado) {
-      return res
-        .status(400)
-        .json({
-          message: "No se puede eliminar un proyecto del portafolio activo",
-        });
+      return res.status(400).json({
+        message: "No se puede eliminar un proyecto del portafolio activo",
+      });
     }
     const images = portafolio.imagenes;
     const uploadDir = path.join(__dirname, "../public");

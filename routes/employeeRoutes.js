@@ -59,8 +59,8 @@ router.delete("/hiring/:id",hiringController.deleteHiring);
 
 //routes for ppe assignment
 router.get("/assignment",AssignmentController.getAssignment);
-router.post("/assignment",validate("assignment"),AssignmentController.createAssignment);
-router.put("/assignment/:id",validate("assignment"),AssignmentController.updateAssignment);
+router.post("/assignment",AssignmentController.createAssignment);
+router.put("/assignment/:id",AssignmentController.updateAssignment);
 router.delete("/assignment/:id",AssignmentController.deleteAssignment);
 router.get("/myAssignment/:id",AssignmentController.getMyAssignment);
 
