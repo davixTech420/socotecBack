@@ -22,7 +22,7 @@ router.get("/dashboard",async (req,res) => {
 router.get("/myGroup/:id",usersGroupController.getUsersGroup);
 
 //rutas para el apique
-
+router.get("/generateApique/:id",apiqueController.generateExcel);
 router.get("/apique",apiqueController.getApiques);
 router.post("/apique",apiqueController.createApique);
 router.delete("/apique/:id",apiqueController.deleteApique);

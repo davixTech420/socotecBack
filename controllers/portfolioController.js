@@ -25,6 +25,7 @@ exports.getPortfolio = async (req, res) => {
   }
 };
 
+
 exports.getPortfolioActive = async (req, res) => {
   try {
     const proyect = await Portfolio.findAll({ where: { estado: true } });
@@ -33,6 +34,7 @@ exports.getPortfolioActive = async (req, res) => {
     res.status(500).json({ error: "Error al obtener los proyectos" });
   }
 };
+
 
 exports.createPortfolio = [
   upload.array("imagenes", 7), // Permite subir hasta 5 imágenes
@@ -77,12 +79,13 @@ exports.createPortfolio = [
         imagenes, // Guarda las rutas de las imágenes
         estado: true,
       });
-      res.status(200).json({ proyect, message: req.body.imagenes });
+      res.status(200).json({ proyect });
     } catch (error) {
       res.status(500).json({ message: "Error al crear el proyecto", error });
     }
   },
 ];
+
 
 exports.updatePortfolio = [
   upload.array("imagenes", 7),
@@ -91,114 +94,99 @@ exports.updatePortfolio = [
       const { id } = req.params;
       const {
         nombre,
-        descripcion,
-        presupuesto,
         cliente,
         ubicacion,
+        presupuesto,
+        descripcion,
         superficie,
         detalle,
+        imagenes: existingImages = [],
       } = req.body;
-      let existingImages = req.body.existingImages || [];
-      if (!Array.isArray(existingImages)) {
-        existingImages = [existingImages]; // Asegurar que siempre sea un array
+
+      // Asegurar que existingImages sea un array
+      const parsedExistingImages = Array.isArray(existingImages)
+        ? existingImages
+        : existingImages
+        ? [existingImages]
+        : [];
+
+      // Buscar el proyecto existente
+      const proyecto = await Portfolio.findOne({ where: { id } });
+      if (!proyecto) {
+        return res.status(404).json({ error: "Portafolio no encontrado" });
       }
-      const proyect = await Portfolio.findByPk(id);
-      if (!proyect) {
-        return res.status(404).json({ error: "Proyecto no encontrado" });
-      }
-      // Obtener imágenes actuales
-      let currentImages = proyect.imagenes.map((img) => img.uri);
-      // Filtrar imágenes a eliminar (las que ya no están en existingImages)
-      const imagesToDelete = currentImages.filter(
-        (img) => !existingImages.includes(img)
+
+      // Obtener imágenes actuales del proyecto
+      const currentImages = proyecto.imagenes || [];
+
+      // 1. Manejo de imágenes a eliminar
+      const imagesToKeep = parsedExistingImages.filter(
+        (img) => img && typeof img === "string"
       );
-      // Eliminar archivos de imágenes que ya no están en existingImages
+      const imagesToDelete = currentImages
+        .filter((img) => !imagesToKeep.includes(img.uri))
+        .map((img) => img.uri);
+
+      // Eliminar archivos físicos de las imágenes removidas
       imagesToDelete.forEach((imgPath) => {
         const fullPath = path.join(__dirname, "..", "public", imgPath);
         if (fs.existsSync(fullPath)) {
-          fs.unlink(fullPath, (err) => {
-            if (err)
-              console.error(`Error al eliminar la imagen ${imgPath}:`, err);
-            else console.log(`Imagen eliminada: ${imgPath}`);
-          });
+          fs.unlinkSync(fullPath); // Usamos sync para asegurar la eliminación antes de continuar
+          console.log(`Imagen eliminada: ${imgPath}`);
         }
       });
-      // Agregar nuevas imágenes si hay archivos subidos
-      const newImages = req.files.map((file) => ({
-        uri: `/images/${file.filename}`,
-      }));
-      // Crear lista final de imágenes
-      const updatedImages = [
-        ...existingImages.map((uri) => ({ uri })),
+
+      // 2. Manejo de nuevas imágenes subidas
+      const newImages = req.files
+        ? req.files.map((file) => ({
+            uri: `/images/${file.filename}`,
+            originalName: file.originalname,
+          }))
+        : [];
+
+      // 3. Combinar imágenes existentes (que se mantienen) con nuevas
+      const finalImages = [
+        ...currentImages.filter((img) => imagesToKeep.includes(img.uri)),
         ...newImages,
       ];
-      // Actualizar el proyecto
-      await proyect.update({
-        nombre,
-        descripcion,
-        presupuesto,
-        cliente,
-        ubicacion,
-        superficie,
-        detalle,
-        imagenes: updatedImages,
+
+      // Actualizar el proyecto en la base de datos
+      const [updated] = await Portfolio.update(
+        {
+          nombre,
+          cliente,
+          ubicacion,
+          presupuesto,
+          descripcion,
+          superficie,
+          detalle,
+          imagenes: finalImages,
+        },
+        { where: { id } }
+      );
+
+      if (!updated) {
+        return res
+          .status(404)
+          .json({ error: "No se pudo actualizar el apique" });
+      }
+
+      // Obtener el proyecto actualizado para devolverlo
+      const updatedApique = await Portfolio.findOne({ where: { id } });
+      res.status(200).json({
+        message: "Portafolio actualizado correctamente",
+        apique: updatedApique,
       });
-      res.status(200).json({ message: "Proyecto actualizado", proyect });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Error al actualizar el proyecto" });
+      console.error("Error al actualizar portafolio:", error);
+      res.status(500).json({
+        error: "Error al actualizar el proyecto",
+        details: error.message,
+      });
     }
   },
 ];
 
-/* exports.updatePortfolio = [
-    upload.array('imagenes', 7), 
-    async (req, res) => {
-      try {
-        const { id } = req.params;
-        const { nombre, descripcion, presupuesto, cliente, ubicacion, superficie, detalle } = req.body;
-        let existingImages = req.body.existingImages || [];
-  
-        if (!Array.isArray(existingImages)) {
-          existingImages = [existingImages]; // Asegurar que siempre sea un array
-        }
-  
-        const proyect = await Portfolio.findByPk(id);
-        if (!proyect) {
-          return res.status(404).json({ error: "Proyecto no encontrado" });
-        }
-  
-        // Obtener imágenes actuales
-        let currentImages = proyect.imagenes.map(img => img.uri);
-  
-        // Filtrar imágenes a eliminar (las que ya no están en existingImages)
-        const imagesToDelete = currentImages.filter(img => !existingImages.includes(img));
-  
-        // Agregar nuevas imágenes si hay archivos subidos
-        const newImages = req.files.map(file => ({ uri: `/images/${file.filename}` }));
-  
-        // Crear lista final de imágenes
-        const updatedImages = [...existingImages.map(uri => ({ uri })), ...newImages];
-  
-        // Actualizar el proyecto
-        await proyect.update({
-          nombre,
-          descripcion,
-          presupuesto,
-          cliente,
-          ubicacion,
-          superficie,
-          detalle,
-          imagenes: updatedImages,
-        });
-  
-        res.status(200).json({ message: "Proyecto actualizado", proyect });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Error al actualizar el proyecto" });
-      }
-    },
-  ]; */
 
 exports.deletePortfolio = async (req, res) => {
   try {

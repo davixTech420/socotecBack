@@ -31,17 +31,13 @@ app.use(bodyParser.json());
 
 app.use("/images", express.static("public/images"));
 app.use("/ppe", express.static("public/ppe"));
-app.use("/apiques", express.static("public/apique"));
+app.use("/apique", express.static("public/apique"));
 //rutas del backend o endpoints rutas publicas
 app.use("/api/public", publicRoutes);
 //rutas para el empleado validando autenticacion con token y con roles
 app.use("/api/admin", adminRoutes, authMiddleware);
 
-app.use(
-  "/api/employee",
-  employeeRoutes,
-  authMiddleware
-);
+app.use("/api/employee", employeeRoutes, authMiddleware);
 
 //iniciso del servidor ojo el force en true elimina toda la base de datos
 sequelize

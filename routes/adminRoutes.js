@@ -51,6 +51,7 @@ router.get("/dashboard", async (req,res) => {
 router.get("/apique",apiqueController.getApiques);
 router.post("/apique",apiqueController.createApique);
 router.delete("/apique/:id",apiqueController.deleteApique);
+router.put("/apique/:id",apiqueController.updateApique);
 
 //rutas para la tabla de usuarios desde el administrador
 router.post("/users", validate("users"), userController.createUser);

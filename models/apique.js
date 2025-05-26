@@ -13,65 +13,61 @@ const Apique = sequelize.define("Apique", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  cliente:{
-    type:DataTypes.STRING,
+  cliente: {
+    type: DataTypes.STRING,
     allowNull: false,
   },
-  tituloObra:{
-    type:DataTypes.STRING,
+  tituloObra: {
+    type: DataTypes.STRING,
     allowNull: false,
   },
-  localizacion:{
-    type:DataTypes.STRING,
+  localizacion: {
+    type: DataTypes.STRING,
     allowNull: false,
-    
   },
-albaranNum:{
-    type:DataTypes.STRING,
+  albaranNum: {
+    type: DataTypes.STRING,
     allowNull: false,
-    unique:true,
   },
-  fechaEjecucionInicio:{
-    type:DataTypes.DATEONLY,
-    allowNull:false,
-
+  fechaEjecucionInicio: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
   },
-  fechaEjecucionFinal:{
-    type:DataTypes.DATEONLY,
-    allowNull:false,
+  fechaEjecucionFinal: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
   },
-  fechaEmision:{
-    type:DataTypes.DATEONLY,
-    allowNull:false,
+  fechaEmision: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
   },
-  tipo:{
-    type:DataTypes.STRING,
-    allowNull:false,
+  tipo: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
-  operario:{
-    type:DataTypes.STRING,
-    allowNull:false,
+  operario: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
-  largoApique:{
-type:DataTypes.FLOAT,
-allowNull:true,
+  largoApique: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
   },
-  anchoApique:{
-    type:DataTypes.FLOAT,
-    allowNull:true,
+  anchoApique: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
   },
-  profundidadApique:{
-    type:DataTypes.FLOAT,
-    allowNull:true, 
+  profundidadApique: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
   },
-   imagenes: {
-          type: DataTypes.JSON,
-          allowNull: false,
-      },
-      observaciones:{
-        type:DataTypes.STRING,
-        allowNull:true,
-      },
- 
+  imagenes: {
+    type: DataTypes.JSON,
+    allowNull: false,
+  },
+  observaciones: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 });
 module.exports = Apique;
