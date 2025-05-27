@@ -16,6 +16,7 @@ const ticketController = require("../controllers/ticketController");
 const hiringController = require("../controllers/hiringController");
 const AssignmentController = require("../controllers/assignmentPPEController");
 const apiqueController = require("../controllers/apiqueController");
+const sampleApiqueController = require("../controllers/sampleApiqueController");
 
 const User = require("../models/user");
 const Account = require("../models/account");
@@ -46,12 +47,17 @@ router.get("/dashboard", async (req,res) => {
   }
 });
 
+//rutas de sampleApique
+
+router.get("/sampleApique/:apiqueId",sampleApiqueController.getSampleApiqueById);
+
 
 //rutas para la creacion de apiques
 router.get("/apique",apiqueController.getApiques);
 router.post("/apique",apiqueController.createApique);
 router.delete("/apique/:id",apiqueController.deleteApique);
 router.put("/apique/:id",apiqueController.updateApique);
+router.get("/generateApique/:id",apiqueController.generateExcel);
 
 //rutas para la tabla de usuarios desde el administrador
 router.post("/users", validate("users"), userController.createUser);

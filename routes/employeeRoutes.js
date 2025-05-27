@@ -10,6 +10,7 @@ const AssignmentController = require("../controllers/assignmentPPEController");
 const InventoryController = require("../controllers/inventoryController");
 const userController = require("../controllers/userController");
 const apiqueController = require("../controllers/apiqueController");
+const sampleApiqueController = require("../controllers/sampleApiqueController");
 const validate = require('../middleware/validationScheme');
 
 
@@ -20,12 +21,17 @@ router.get("/dashboard",async (req,res) => {
 
 
 router.get("/myGroup/:id",usersGroupController.getUsersGroup);
+//rutas de sampleApique
+
+router.get("/sampleApique/:apiqueId",sampleApiqueController.getSampleApiqueById);
+
 
 //rutas para el apique
 router.get("/generateApique/:id",apiqueController.generateExcel);
 router.get("/apique",apiqueController.getApiques);
 router.post("/apique",apiqueController.createApique);
 router.delete("/apique/:id",apiqueController.deleteApique);
+router.put("/apique/:id",apiqueController.updateApique);
 
 
 

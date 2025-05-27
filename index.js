@@ -20,6 +20,7 @@ const Task = require("./models/task");
 const Ticket = require("./models/ticket");
 const Hiring = require("./models/hiring");
 const Apique = require("./models/apique");
+const SampleApique = require("./models/sampleApique");
 const AssignmentPPE = require("./models/assignmentsPPE");
 const authMiddleware = require("./middleware/authMiddleware");
 const roleMiddleware = require("./middleware/roleMiddleware");

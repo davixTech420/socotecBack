@@ -1,4 +1,5 @@
 const Apique = require("../models/apique");
+const SampleApique = require("../models/sampleApique");
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
@@ -24,7 +25,7 @@ exports.getApiques = async (req, res) => {
   }
 };
 
-exports.createApique = [
+/* exports.createApique = [
   upload.array("imagenes", 5), // Permite subir hasta 5 imágenes
   async (req, res) => {
     try {
@@ -43,6 +44,7 @@ exports.createApique = [
         anchoApique,
         profundidadApique,
         observaciones,
+        muestras,
       } = req.body;
 
       // Verifica si hay archivos subidos
@@ -75,10 +77,104 @@ exports.createApique = [
         imagenes,
         observaciones,
       });
-      res.status(200).json({ apiques });
+      res.status(200).json({ apiques,muestras });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: "Error al crear el proyecto", error });
+    }
+  },
+]; */
+
+exports.createApique = [
+  upload.array("imagenes", 5),
+  async (req, res) => {
+    try {
+      const {
+        informeNum,
+        cliente,
+        tituloObra,
+        localizacion,
+        albaranNum,
+        fechaEjecucionInicio,
+        fechaEjecucionFinal,
+        fechaEmision,
+        tipo,
+        operario,
+        largoApique,
+        anchoApique,
+        profundidadApique,
+        observaciones,
+        muestras, // Este es el array de muestras en formato string JSON
+      } = req.body;
+
+      // Verifica si hay archivos subidos
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: "No se subieron imágenes" });
+      }
+
+      const imagenes = req.files.map((file) => {
+        return {
+          uri: `/apique/${file.filename}`,
+          originalName: file.originalname,
+        };
+      });
+
+      // 1. Crear el apique principal
+      const apique = await Apique.create({
+        informeNum,
+        cliente,
+        tituloObra,
+        localizacion,
+        albaranNum,
+        fechaEjecucionInicio,
+        fechaEjecucionFinal,
+        fechaEmision,
+        tipo,
+        operario,
+        largoApique,
+        anchoApique,
+        profundidadApique,
+        imagenes,
+        observaciones,
+      });
+
+      // 2. Procesar las muestras (si existen)
+      let muestrasCreadas = [];
+      if (muestras) {
+        // Parsear el string JSON a array
+        const muestrasArray = JSON.parse(muestras);
+
+        // Crear cada muestra asociada al apique
+        muestrasCreadas = await Promise.all(
+          muestrasArray.map(async (muestra) => {
+            return await SampleApique.create({
+              sampleNum: muestra.sampleNum,
+              profundidadInicio: muestra.profundidadInicio,
+              profundidadFin: muestra.profundidadFin,
+              espresor: muestra.espresor, // Nota: Corregí "espresor" a "espesor"
+              estrato: muestra.color,
+              descripcion: muestra.descripcion,
+              tipoMuestra: muestra.tipoMuestra,
+              pdcLi: muestra.pdcLi,
+              pdcLf: muestra.pdcLf,
+              pdcGi: muestra.pdcGi,
+              apiqueId: apique.id, // Establece la relación con el apique
+            });
+          })
+        );
+      }
+
+      res.status(200).json({
+        apique,
+        muestras: muestrasCreadas,
+        message: "Apique y muestras creadas exitosamente",
+      });
+    } catch (error) {
+      console.error("Error al crear el apique:", error);
+      res.status(500).json({
+        message: "Error al crear el proyecto",
+        error: error.message,
+      });
     }
   },
 ];
@@ -237,47 +333,24 @@ exports.deleteApique = async (req, res) => {
   }
 };
 
-const sampleData = {
-  albaranNum: "34",
-  anchoApique: "12.3",
-  cliente: "asdsadsada",
-  createdAt: "2025-05-16T19:32:40.399Z",
-  estado: true,
-  fechaEjecucionFinal: "2025-06-05",
-  fechaEjecucionInicio: "2025-06-05",
-  fechaEmision: "2025-06-05",
-  id: 5,
-  imagenes: [{ uri: "image1.jpg" }, { uri: "image2.jpg" }],
-  informeNum: "23",
-  largoApique: "12.3",
-  localizacion: "asdasd",
-  observaciones: "dsadsadsa",
-  operario: "sadasdasd",
-  profundidadApique: "45.2",
-  tipo: "asdsadasd",
-  tituloObra: "asdasd",
-  updatedAt: "2025-05-16T19:32:40.399Z",
-};
-
 exports.generateExcel = async (req, res) => {
   try {
-const {id} = req.params;
-const sampleData = await Apique.findOne({where:{id:id}})
+    const { id } = req.params;
+    const sampleData = await Apique.findOne({ where: { id: id } });
+    const sampleApique = await SampleApique.findAll({
+      where: { apiqueId: id },
+    });
 
-
-    // 1. Cargar la plantilla (ajusta la ruta según donde esté tu plantilla)
+    // Cargar plantilla
     const plantillaPath = path.join(
       __dirname,
       "../public/templates/PlantillaApique.xlsx"
     );
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(plantillaPath);
-
-    // 2. Obtener la hoja 'Perfil'
     const worksheet = workbook.getWorksheet("Perfil");
 
-    // 3. Rellenar los datos en las celdas correspondientes
-    // Sección superior
+    // Rellenar datos existentes (como en tu código original)
     worksheet.getCell("D4").value = sampleData.informeNum; // Informe No.
     worksheet.getCell("L4").value = sampleData.albaranNum; // Albarán No.
 
@@ -306,7 +379,89 @@ const sampleData = await Apique.findOne({where:{id:id}})
       const lineas = sampleData.observaciones.split("\n").length;
       worksheet.getRow(42).height = Math.max(15, lineas * 15);
     }
-    // Configurar cabeceras para descarga
+    // Insertar datos de sampleApique en A16:N24
+    if (sampleApique.length > 0) {
+      const startRow = 16; // Fila inicial (A16)
+      const endRow = 24; // Fila final (N24)
+      const startCol = 1; // Columna A (1)
+      const endCol = 14; // Columna N (14)
+
+      // Calcular espacio disponible
+      const availableRows = endRow - startRow + 1;
+      const rowsPerSample = Math.floor(availableRows / sampleApique.length);
+
+      sampleApique.forEach((muestra, index) => {
+        const currentRow = startRow + index * rowsPerSample;
+
+        // Datos básicos (ajusta según tus necesidades)
+        worksheet.getCell(`A${currentRow}`).value = index + 1; // Número consecutivo
+        worksheet.getCell(`B${currentRow}`).value = muestra.profundidadInicio;
+        worksheet.getCell(`C${currentRow}`).value = muestra.profundidadFin;
+        worksheet.getCell(`D${currentRow}`).value = muestra.espresor;
+        worksheet.getCell(`E${currentRow}`).value = muestra.estrato;
+        worksheet.getCell(`F${currentRow}`).value = muestra.descripcion;
+        worksheet.getCell(`K${currentRow}`).value = muestra.tipoMuestra;
+        worksheet.getCell(`L${currentRow}`).value = muestra.pdcLi;
+        worksheet.getCell(`M${currentRow}`).value = muestra.pdcLf;
+        worksheet.getCell(`N${currentRow}`).value = muestra.pdcGi;
+
+        // Si necesitas combinar celdas para descripción larga
+        if (muestra.descripcion && muestra.descripcion.length > 30) {
+          worksheet.mergeCells(`G${currentRow}:J${currentRow}`);
+          worksheet.getCell(`G${currentRow}`).alignment = { wrapText: true };
+          worksheet.getRow(currentRow).height = 40;
+        }
+      });
+    }
+    // Insertar imágenes en A16:N24 con márgenes pequeños
+    if (sampleData.imagenes && sampleData.imagenes.length > 0) {
+      const images = sampleData.imagenes;
+      const totalImages = images.length;
+      const startRow = 33; // Fila inicial (A16)
+      const endRow = 41; // Fila final (N24)
+      const startCol = 1; // Columna A (1)
+      const endCol = 14; // Columna N (14)
+
+      // Configuración de márgenes (en celdas)
+      const paddingHorizontal = 0.5; // Espacio entre imágenes (0.5 = medio ancho de celda)
+      const paddingVertical = 1; // Margen arriba/abajo (1 fila)
+
+      // Ancho disponible para imágenes (descontando márgenes horizontales)
+      const totalHorizontalPadding = paddingHorizontal * (totalImages - 1);
+      const availableWidth = endCol - startCol + 1 - totalHorizontalPadding;
+      const imageWidth = availableWidth / totalImages;
+
+      // Alto disponible para imágenes (descontando márgenes verticales)
+      const imageHeight = endRow - startRow + 1 - 2 * paddingVertical;
+
+      // Posición vertical (centrada con márgenes)
+      const imageTopRow = startRow + paddingVertical;
+
+      // Insertar cada imagen
+      for (let i = 0; i < totalImages; i++) {
+        const imagePath = path.join(__dirname, "../public", images[i].uri);
+        const imageExt = path.extname(images[i].uri).substring(1);
+
+        // Calcular posición horizontal (con márgenes)
+        const imageLeftCol = startCol + i * (imageWidth + paddingHorizontal);
+
+        // Añadir imagen al Excel
+        const imageId = workbook.addImage({
+          filename: imagePath,
+          extension: imageExt,
+        });
+
+        worksheet.addImage(imageId, {
+          tl: { col: imageLeftCol - 1, row: imageTopRow - 1 }, // Top-left (0-based)
+          br: {
+            col: imageLeftCol + imageWidth - 1,
+            row: imageTopRow + imageHeight - 1,
+          },
+        });
+      }
+    }
+
+    // Configurar respuesta
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -315,11 +470,10 @@ const sampleData = await Apique.findOne({where:{id:id}})
       "Content-Disposition",
       `attachment; filename="Apique_${sampleData.id}.xlsx"`
     );
-
-    // Escribir el workbook directamente en la respuesta
     await workbook.xlsx.write(res);
     res.end();
   } catch (error) {
-    res.status(500).json(error);
+    console.error("Error al generar Excel:", error);
+    res.status(500).json({ error: "Error al generar el Excel" });
   }
 };

@@ -36,6 +36,10 @@ espresor:{
     type:DataTypes.FLOAT,
     allowNull:false,
 },
+estrato:{
+    type:DataTypes.STRING,
+    allowNull:false,
+},
 descripcion:{
     type:DataTypes.STRING,
     allowNull:false,
@@ -44,6 +48,18 @@ tipoMuestra:{
 type:DataTypes.STRING,
 allowNull:false,
 },
+pdcLi:{
+  type:DataTypes.STRING,
+  allowNull:true,
+},
+pdcLf:{
+type:DataTypes.STRING,
+allowNull:true,
+},
+pdcGi:{
+  type:DataTypes.STRING,
+  allowNull:true,
+}
 });
 
 module.exports = sampleApique;
