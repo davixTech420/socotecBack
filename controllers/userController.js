@@ -2,6 +2,9 @@ const User = require('../models/user');
 const Employee = require('../models/employee');
 const UsersGroup = require("../models/usersGroup");
 const Permissions = require("../models/permission");
+const Ticket = require("../models/ticket");
+const Task = require("../models/task");
+const AssignmentPPE = require("../models/assignmentsPPE");
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -25,6 +28,7 @@ exports.validarUser = async (req, res) => {
     if (validateEmail) {
       return res.status(400).json({ message: 'El email o el teléfono ya esta en uso' });
     }
+    
 
     // Generar un token con expiración
     const token = jwt.sign({ nombre, telefono, email, password }, process.env.JWT_SECRET, { expiresIn: '5h' });
@@ -490,41 +494,6 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// endpoint para actualizar un usuario
-/* exports.updateUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nombre, telefono, email, role } = req.body;
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
-    }
-
-    const usuarioExistente = await User.findOne({
-      where: {
-        [Op.or]: [{ email }, { telefono }],
-        id: { [Op.ne]: id },
-      },
-    });
-
-    if (usuarioExistente) {
-      return res.status(400).json({ message: "El email o el teléfono ya existen en otro usuario" });
-    }
-
-    user.nombre = nombre;
-    user.telefono = telefono;
-    user.email = email;
-    user.role = role;
-    if(user.role === "admin"){
-      await Employee.destroy({ where: { userId: id } });
-    }
-    await user.save();
-    res.status(200).json({ message: "Usuario actualizado" });
-  } catch (error) {
-    res.status(500).json(error);
-  }
-} */
-
 
   exports.updateUser = async (req, res) => {
     try {
@@ -535,6 +504,14 @@ exports.deleteUser = async (req, res) => {
       if (!user) {
         return res.status(404).json({ message: "Usuario no encontrado" });
       }
+      if (telefono.length !== 10 || !/^\d+$/.test(telefono)) {
+        return res.status(400).json({message:"El telefono debe ser de 10 digitos y solo numeros"});
+    }
+    if(!email.toLowerCase().endsWith("@socotec.com")){
+      return res.status(400).json({message:"El email debe pertenecer al dominio de @socotec.com"})
+    }
+
+
   
       // Verificar si el email o teléfono ya existen en otro usuario
       const usuarioExistente = await User.findOne({
@@ -547,6 +524,10 @@ exports.deleteUser = async (req, res) => {
       if (usuarioExistente) {
         return res.status(400).json({ message: "El email o el teléfono ya existen en otro usuario" });
       }
+
+
+
+
   
       // Guardar el rol anterior para compararlo después
       const rolAnterior = user.role;
@@ -584,10 +565,23 @@ exports.inactivateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
-    const grupos = await UsersGroup.findOne({ where: { userId: id } })
+    const grupos = await UsersGroup.findOne({ where: { userId: id } });
+    const tareas = await Task.findAll({where:{asignadoId:id}});
+    const ticke = await Ticket.findAll({where:{userId:id}});
+    const ppe = await AssignmentPPE.findAll({where:{userId:id}});
     if (grupos) {
       return res.status(400).json({ message: "El usuario no puede ser inactivado porque está en un grupo" });
     }
+    if(tareas.length > 0){
+      return res.status(400).json({ message: "El usuario no puede ser inactivado porque tiene tareas activas" });
+    } 
+    if(ticke.length > 0){
+      return res.status(400).json({ message: "El usuario no puede ser inactivado porque tiene tickets activos" });
+    }
+    if(ppe.length > 0){
+      return res.status(400).json({ message: "El usuario no puede ser inactivado porque tiene PPE activos" });
+    }
+
     user.estado = false;
     await user.save();
     res.status(200).json({ message: "Usuario inactivado" });

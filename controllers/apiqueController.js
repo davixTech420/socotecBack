@@ -25,65 +25,7 @@ exports.getApiques = async (req, res) => {
   }
 };
 
-/* exports.createApique = [
-  upload.array("imagenes", 5), // Permite subir hasta 5 imágenes
-  async (req, res) => {
-    try {
-      const {
-        informeNum,
-        cliente,
-        tituloObra,
-        localizacion,
-        albaranNum,
-        fechaEjecucionInicio,
-        fechaEjecucionFinal,
-        fechaEmision,
-        tipo,
-        operario,
-        largoApique,
-        anchoApique,
-        profundidadApique,
-        observaciones,
-        muestras,
-      } = req.body;
 
-      // Verifica si hay archivos subidos
-      if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ error: "No se subieron imágenes" });
-      }
-
-      const imagenes = req.files.map((file) => {
-        return {
-          uri: `/apique/${file.filename}`, // Ruta pública de la imagen
-          originalName: file.originalname,
-        };
-      });
-
-      // Crea el proyecto en la base de datos
-      const apiques = await Apique.create({
-        informeNum,
-        cliente,
-        tituloObra,
-        localizacion,
-        albaranNum,
-        fechaEjecucionInicio,
-        fechaEjecucionFinal,
-        fechaEmision,
-        tipo,
-        operario,
-        largoApique,
-        anchoApique,
-        profundidadApique,
-        imagenes,
-        observaciones,
-      });
-      res.status(200).json({ apiques,muestras });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: "Error al crear el proyecto", error });
-    }
-  },
-]; */
 
 exports.createApique = [
   upload.array("imagenes", 5),
@@ -152,7 +94,7 @@ exports.createApique = [
               profundidadInicio: muestra.profundidadInicio,
               profundidadFin: muestra.profundidadFin,
               espresor: muestra.espresor, // Nota: Corregí "espresor" a "espesor"
-              estrato: muestra.color,
+              estrato: muestra.estrato,
               descripcion: muestra.descripcion,
               tipoMuestra: muestra.tipoMuestra,
               pdcLi: muestra.pdcLi,
@@ -199,6 +141,7 @@ exports.updateApique = [
         anchoApique,
         profundidadApique,
         observaciones,
+        muestras,
         imagenes: existingImages = [], // Cambiado de existingImages a imagenes para consistencia
       } = req.body;
 
@@ -277,6 +220,35 @@ exports.updateApique = [
           .json({ error: "No se pudo actualizar el apique" });
       }
 
+// Actualizar muestras
+let muestrasActualizadas = [];
+if (muestras) {
+  const muestrasArray = JSON.parse(muestras);
+
+  // Puedes eliminar todas las muestras anteriores y recrearlas (si prefieres)
+  await SampleApique.destroy({ where: { apiqueId:id } });
+
+  muestrasActualizadas = await Promise.all(
+    muestrasArray.map(async (muestra) => {
+      return await SampleApique.create({
+        sampleNum: muestra.sampleNum,
+        profundidadInicio: muestra.profundidadInicio,
+        profundidadFin: muestra.profundidadFin,
+        espresor: muestra.espresor, // sigue igual si se usa este campo
+        estrato: muestra.estrato,
+        descripcion: muestra.descripcion,
+        tipoMuestra: muestra.tipoMuestra,
+        pdcLi: muestra.pdcLi,
+        pdcLf: muestra.pdcLf,
+        pdcGi: muestra.pdcGi,
+        apiqueId: id,
+      });
+    })
+  );
+}
+
+
+
       // Obtener el proyecto actualizado para devolverlo
       const updatedApique = await Apique.findOne({ where: { id } });
       res.status(200).json({
@@ -292,6 +264,8 @@ exports.updateApique = [
     }
   },
 ];
+
+
 
 exports.deleteApique = async (req, res) => {
   try {

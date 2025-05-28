@@ -20,6 +20,10 @@ exports.createTask = async (req, res) => {
         if((await Task.findAll({where:{titulo}})).length > 0){
             return res.status(400).json({ message: "La tarea ya existe" });
         }
+
+        
+
+
         const task = await Task.create({ asignadoId, titulo, descripcion, estado: true });
         res.status(200).json({  message: 'Tarea creada',task});
     } catch (error) {

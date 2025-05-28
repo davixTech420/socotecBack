@@ -28,6 +28,43 @@ exports.createHiring = async (req, res) => {
       nota,
     } = req.body;
 
+
+    const estadosValidos = ["Postulado", "CV Aprobado", "Entrevista 1", "Entrevista 2", "Prueba Tecnica", "Oferta Enviada", "Contrato Firmado", "Rechazado"];
+    if (typeof estado !== "string" || !estadosValidos.includes(estado)) {
+        return res.status(400).json({ 
+            message: "Estado no válido"
+        });
+    }
+
+    const contratoValidos = ["Fijo","Indefinido","Prestacion Servicios","Practicante"];
+    if (typeof tipoContrato !== "string" || !contratoValidos.includes(tipoContrato)) {
+      return res.status(400).json({ 
+          message: "Tipo de contrato no válido"
+      });
+  }
+
+  const cargoValidos = [  "DirectorTalento",
+    "Talento",
+    "Directorsset",
+    "Sset",
+    "Ingeniero",
+    "Director",
+    "Laboratorista",
+    "Campo",
+    "Auxiliar",
+    "Arquitecto",
+    "TeamLider",
+    "Deliniante",
+    "DirectorContable",
+    "Contador"];
+
+    if (typeof cargo !== "string" || !cargoValidos.includes(cargo)) {
+      return res.status(400).json({ 
+          message: "Cargo no válido"
+      });
+  }
+
+
     const hiring = await Hiring.create({
       nombre,
       email,
@@ -61,6 +98,45 @@ exports.updateHiring = async (req, res) => {
       cita,
       nota,
     } = req.body;
+
+
+    const estadosValidos = ["Postulado", "CV Aprobado", "Entrevista 1", "Entrevista 2", "Prueba Tecnica", "Oferta Enviada", "Contrato Firmado", "Rechazado"];
+    if (typeof estado !== "string" || !estadosValidos.includes(estado)) {
+        return res.status(400).json({ 
+            message: "Estado no válido"
+        });
+    }
+
+    const contratoValidos = ["Fijo","Indefinido","Prestacion Servicios","Practicante"];
+    if (typeof tipoContrato !== "string" || !contratoValidos.includes(tipoContrato)) {
+      return res.status(400).json({ 
+          message: "Tipo de contrato no válido"
+      });
+  }
+
+  const cargoValidos = [  "DirectorTalento",
+    "Talento",
+    "Directorsset",
+    "Sset",
+    "Ingeniero",
+    "Director",
+    "Laboratorista",
+    "Campo",
+    "Auxiliar",
+    "Arquitecto",
+    "TeamLider",
+    "Deliniante",
+    "DirectorContable",
+    "Contador"];
+
+    if (typeof cargo !== "string" || !cargoValidos.includes(cargo)) {
+      return res.status(400).json({ 
+          message: "Cargo no válido"
+      });
+  }
+
+
+
 
     // Actualizar el registro
     const hiring = await Hiring.update(
