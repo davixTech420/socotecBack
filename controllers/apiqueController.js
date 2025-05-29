@@ -26,7 +26,6 @@ exports.getApiques = async (req, res) => {
 };
 
 
-
 exports.createApique = [
   upload.array("imagenes", 5),
   async (req, res) => {
@@ -93,14 +92,17 @@ exports.createApique = [
               sampleNum: muestra.sampleNum,
               profundidadInicio: muestra.profundidadInicio,
               profundidadFin: muestra.profundidadFin,
-              espresor: muestra.espresor, // Nota: Corregí "espresor" a "espesor"
+              espresor: muestra.espresor,
               estrato: muestra.estrato,
               descripcion: muestra.descripcion,
+              resultados:muestra.resultados,
+              granulometria:muestra.granulometria,
+              uscs:muestra.uscs,
               tipoMuestra: muestra.tipoMuestra,
               pdcLi: muestra.pdcLi,
               pdcLf: muestra.pdcLf,
               pdcGi: muestra.pdcGi,
-              apiqueId: apique.id, // Establece la relación con el apique
+              apiqueId: apique.id,
             });
           })
         );
@@ -237,6 +239,9 @@ if (muestras) {
         espresor: muestra.espresor, // sigue igual si se usa este campo
         estrato: muestra.estrato,
         descripcion: muestra.descripcion,
+        resultados:muestra.resultados,
+        granulometria:muestra.granulometria,
+        uscs:muestra.uscs,
         tipoMuestra: muestra.tipoMuestra,
         pdcLi: muestra.pdcLi,
         pdcLf: muestra.pdcLf,
@@ -297,6 +302,9 @@ exports.deleteApique = async (req, res) => {
         console.error(`Error al eliminar la imagen ${image.uri}:`, err);
       }
     });
+
+
+    const muestras = await SampleApique.destroy({where:{apiqueId:id}});
     const proyect = await Apique.destroy({ where: { id } });
     res.status(200).json(proyect);
   } catch (error) {
@@ -366,14 +374,47 @@ exports.generateExcel = async (req, res) => {
 
       sampleApique.forEach((muestra, index) => {
         const currentRow = startRow + index * rowsPerSample;
+        
+        const row = worksheet.getRow(currentRow);
+        row.eachCell((cell) => {
+          cell.style = {}; // Reset completo de estilos
+          cell.fill = undefined;
+          cell.border = undefined;
+          cell.font = undefined;
+        });
 
         // Datos básicos (ajusta según tus necesidades)
         worksheet.getCell(`A${currentRow}`).value = index + 1; // Número consecutivo
         worksheet.getCell(`B${currentRow}`).value = muestra.profundidadInicio;
         worksheet.getCell(`C${currentRow}`).value = muestra.profundidadFin;
         worksheet.getCell(`D${currentRow}`).value = muestra.espresor;
-        worksheet.getCell(`E${currentRow}`).value = muestra.estrato;
+
+ // 2. Aplicar SOLO a la celda E (Estinto)
+ const cellE = worksheet.getCell(`E${currentRow}`);
+  
+ // Reset completo de la celda E
+ cellE.style = {};
+ cellE.value = ''; // Valor vacío
+ 
+ // Validar y aplicar color HEX
+ if (/^#?([0-9A-F]{3,6})$/i.test(muestra.estrato)) {
+   const hexColor = muestra.estrato.replace('#', '');
+   // Rellenar solo el fondo
+   cellE.fill = {
+     type: 'pattern',
+     pattern: 'solid',
+     fgColor: { argb: hexColor.length === 3 ? 
+       `${hexColor[0]}${hexColor[0]}${hexColor[1]}${hexColor[1]}${hexColor[2]}${hexColor[2]}` : 
+       hexColor.padEnd(6, '0') }
+   };
+ } else {
+   cellE.value = muestra.estrato || '';
+ }
+        
         worksheet.getCell(`F${currentRow}`).value = muestra.descripcion;
+        worksheet.getCell(`H${currentRow}`).value = muestra.resultados;
+        worksheet.getCell(`I${currentRow}`).value = muestra.granulometria;
+        worksheet.getCell(`J${currentRow}`).value = muestra.uscs;
         worksheet.getCell(`K${currentRow}`).value = muestra.tipoMuestra;
         worksheet.getCell(`L${currentRow}`).value = muestra.pdcLi;
         worksheet.getCell(`M${currentRow}`).value = muestra.pdcLf;

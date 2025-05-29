@@ -44,6 +44,19 @@ descripcion:{
     type:DataTypes.STRING,
     allowNull:false,
 },
+resultados:{
+  type:DataTypes.STRING,
+  allowNull:true
+
+},
+granulometria:{
+  type:DataTypes.STRING,
+  allowNull:true,
+},
+uscs:{
+type:DataTypes.STRING,
+allowNull:true,
+},
 tipoMuestra:{
 type:DataTypes.STRING,
 allowNull:false,

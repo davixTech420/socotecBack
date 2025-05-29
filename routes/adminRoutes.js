@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+
 //controladores para endpoints
 const userController = require('../controllers/userController');
 const employeeController = require('../controllers/employeeController');
@@ -47,8 +48,9 @@ router.get("/dashboard", async (req,res) => {
   }
 });
 
-//rutas de sampleApique
 
+
+//rutas de sampleApique
 router.get("/sampleApique/:apiqueId",sampleApiqueController.getSampleApiqueById);
 
 
