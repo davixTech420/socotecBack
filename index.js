@@ -36,9 +36,9 @@ app.use("/apique", express.static("public/apique"));
 //rutas del backend o endpoints rutas publicas
 app.use("/api/public", publicRoutes);
 //rutas para el empleado validando autenticacion con token y con roles
-app.use("/api/admin", adminRoutes, authMiddleware);
+app.use("/api/admin",authMiddleware,roleMiddleware("admin"),adminRoutes);
 
-app.use("/api/employee", employeeRoutes, authMiddleware);
+app.use("/api/employee",authMiddleware,roleMiddleware("employee"),employeeRoutes);
 
 //iniciso del servidor ojo el force en true elimina toda la base de datos
 sequelize
