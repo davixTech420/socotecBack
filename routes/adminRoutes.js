@@ -62,6 +62,7 @@ router.put("/apique/:id",apiqueController.updateApique);
 router.get("/generateApique/:id",apiqueController.generateExcel);
 
 //rutas para la tabla de usuarios desde el administrador
+router.get("/userById/:id",userController.getUsersById);
 router.post("/users", validate("users"), userController.createUser);
 router.get("/users", userController.getUsers);
 router.delete("/users/:id", userController.deleteUser);
@@ -69,7 +70,7 @@ router.put("/users/:id", userController.updateUser);
 router.put("/users/:id/active", userController.activateUser);
 router.put("/users/:id/inactive", userController.inactivateUser);
 router.get("/usersCampo",userController.getCampoUsers);
-
+router.get("/activeUsers", userController.getActiveUsers);
 router.get("/employee", employeeController.getEmployee);
 router.post("/employee", validate("users"), employeeController.createEmployee);
  
@@ -98,6 +99,7 @@ router.get("/ticket",ticketController.getTicket);
 //funcionalidades para el inventario por parte del administrador
 router.post("/inventory", validate("inventory"), inventoryController.createInventory);
 router.put("/inventory/:id", validate("inventory"), inventoryController.updateInventory);
+router.get("/inventoryAct",inventoryController.getActiveInventory);
 router.get("/inventory", inventoryController.getInventory);
 router.delete("/inventory/:id", inventoryController.deleteInventory);
 router.put("/inventory/:id/active", inventoryController.activeInventory);

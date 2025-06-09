@@ -429,6 +429,16 @@ exports.getUsers = async (req, res) => {
   }
 }
 
+exports.getUsersById = async (req,res)=>{
+  try {
+    const { id } = req.params
+    const user = await User.findOne({where:{id:id}});
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({message:"Error al obtener el usuario",error});
+  }
+}
+
 
 exports.getActiveUsers = async (req, res) => {
   try {
