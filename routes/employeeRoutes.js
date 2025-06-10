@@ -90,7 +90,7 @@ router.put("/inventory/:id/active", InventoryController.activeInventory);
 router.put("/inventory/:id/inactive", InventoryController.inactiveInventory);
 
 //routes for users
-
+router.get("/userById/:id",userController.getUsersById);
 router.post("/users", validate("users"), userController.createUser);
 router.get("/users", userController.getUsers);
 router.delete("/users/:id", userController.deleteUser);
