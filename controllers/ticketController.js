@@ -42,7 +42,7 @@ exports.updateTicket = async (req, res) => {
       { remoto, sitio, descripcion, estado },
       { where: { id } }
     );
-    res.status(200).json({ message: "Actualizado Con Exito", ticket });
+    res.status(200).json({ message: "Actualizado Con Exito", ticket});
   } catch (error) {
     res.status(500).json({ message: "Error Al Actulizar Ticket" });
   }
