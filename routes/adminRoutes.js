@@ -93,6 +93,8 @@ router.put("/task/:id/inactive", taskController.inactiveTask);
 //function is the ticket it
 router.post("/ticket",validate("ticket"),ticketController.createTicket);
 router.delete("/ticket/:id",ticketController.deleteTicket);
+router.put("/ticket/:id/resolve",ticketController.resolveTicket);
+router.put("/ticket/:id/process",ticketController.processTicket);
 router.put("/ticket/:id",validate("ticket"),ticketController.updateTicket);
 router.get("/ticket",ticketController.getTicket);
 
