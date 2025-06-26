@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+const accountController = require("../controllers/accountController");
 const motionController = require("../controllers/motionController");
 const permissionController = require("../controllers/permissionController");
 const usersGroupController = require("../controllers/usersGroupController");
