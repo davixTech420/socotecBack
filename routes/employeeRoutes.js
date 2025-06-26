@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+const motionController = require("../controllers/motionController");
 const permissionController = require("../controllers/permissionController");
 const usersGroupController = require("../controllers/usersGroupController");
 const taskController = require("../controllers/taskController");
@@ -90,7 +91,7 @@ router.put("/inventory/:id/active", InventoryController.activeInventory);
 router.put("/inventory/:id/inactive", InventoryController.inactiveInventory);
 
 //routes for users
-router.get("/userById/:id",userController.getUsersById);
+router.get("/userById/:id", userController.getUsersById);
 router.post("/users", validate("users"), userController.createUser);
 router.get("/users", userController.getUsers);
 router.delete("/users/:id", userController.deleteUser);
@@ -99,5 +100,13 @@ router.put("/users/:id/active", userController.activateUser);
 router.put("/users/:id/inactive", userController.inactivateUser);
 router.get("/activeUsers", userController.getActiveUsers);
 router.get("/usersCampo", userController.getCampoUsers);
+
+//routes for motions employee
+router.post("/motions", validate("motions"), motionController.createMotion);
+router.put("/motions/:id", validate("motions"), motionController.updateMotion);
+router.delete("/motions/:id", motionController.deleteMotion);
+router.get("/motions", motionController.getMotions);
+router.put("/motions/:id/active", motionController.activeMotion);
+router.put("/motions/:id/inactive", motionController.inactiveMotion);
 
 module.exports = router;
