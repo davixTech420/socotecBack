@@ -109,4 +109,11 @@ router.get("/motions", motionController.getMotions);
 router.put("/motions/:id/active", motionController.activeMotion);
 router.put("/motions/:id/inactive", motionController.inactiveMotion);
 
+router.post("/accounts", validate("account"), accountController.createAccount);
+router.get("/accounts", accountController.getAccounts);
+router.delete("/accounts/:id", accountController.deleteAccount);
+router.put("/accounts/:id", validate("account"), accountController.updateAccount);
+router.put("/accounts/:id/active", accountController.activeAccount);
+router.put("/accounts/:id/inactive", accountController.inactiveAccount);
+
 module.exports = router;
