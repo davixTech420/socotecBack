@@ -18,6 +18,7 @@ const hiringController = require("../controllers/hiringController");
 const AssignmentController = require("../controllers/assignmentPPEController");
 const apiqueController = require("../controllers/apiqueController");
 const sampleApiqueController = require("../controllers/sampleApiqueController");
+const environmentalController = require("../controllers/environmentalController");
 
 const User = require("../models/user");
 const Account = require("../models/account");
@@ -47,6 +48,13 @@ router.get("/dashboard", async (req,res) => {
     res.status(500).json({ error: 'Error al obtener los usuarios' });
   }
 });
+
+
+//routes environmental
+router.get("/sampleEnvironmental/:environmentalId",environmentalController.getSampleEnvironmentalById);
+router.get("/environmental",environmentalController.getEnvironmental);
+router.post("/environmental",environmentalController.createEnvironmental);
+router.get("/generateEnvironmental/:id",environmentalController.generateExcel);
 
 
 
