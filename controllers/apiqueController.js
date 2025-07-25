@@ -25,7 +25,6 @@ exports.getApiques = async (req, res) => {
   }
 };
 
-
 exports.createApique = [
   upload.array("imagenes", 5),
   async (req, res) => {
@@ -95,9 +94,9 @@ exports.createApique = [
               espresor: muestra.espresor,
               estrato: muestra.estrato,
               descripcion: muestra.descripcion,
-              resultados:muestra.resultados,
-              granulometria:muestra.granulometria,
-              uscs:muestra.uscs,
+              resultados: muestra.resultados,
+              granulometria: muestra.granulometria,
+              uscs: muestra.uscs,
               tipoMuestra: muestra.tipoMuestra,
               pdcLi: muestra.pdcLi,
               pdcLf: muestra.pdcLf,
@@ -222,37 +221,35 @@ exports.updateApique = [
           .json({ error: "No se pudo actualizar el apique" });
       }
 
-// Actualizar muestras
-let muestrasActualizadas = [];
-if (muestras) {
-  const muestrasArray = JSON.parse(muestras);
+      // Actualizar muestras
+      let muestrasActualizadas = [];
+      if (muestras) {
+        const muestrasArray = JSON.parse(muestras);
 
-  // Puedes eliminar todas las muestras anteriores y recrearlas (si prefieres)
-  await SampleApique.destroy({ where: { apiqueId:id } });
+        // Puedes eliminar todas las muestras anteriores y recrearlas (si prefieres)
+        await SampleApique.destroy({ where: { apiqueId: id } });
 
-  muestrasActualizadas = await Promise.all(
-    muestrasArray.map(async (muestra) => {
-      return await SampleApique.create({
-        sampleNum: muestra.sampleNum,
-        profundidadInicio: muestra.profundidadInicio,
-        profundidadFin: muestra.profundidadFin,
-        espresor: muestra.espresor, // sigue igual si se usa este campo
-        estrato: muestra.estrato,
-        descripcion: muestra.descripcion,
-        resultados:muestra.resultados,
-        granulometria:muestra.granulometria,
-        uscs:muestra.uscs,
-        tipoMuestra: muestra.tipoMuestra,
-        pdcLi: muestra.pdcLi,
-        pdcLf: muestra.pdcLf,
-        pdcGi: muestra.pdcGi,
-        apiqueId: id,
-      });
-    })
-  );
-}
-
-
+        muestrasActualizadas = await Promise.all(
+          muestrasArray.map(async (muestra) => {
+            return await SampleApique.create({
+              sampleNum: muestra.sampleNum,
+              profundidadInicio: muestra.profundidadInicio,
+              profundidadFin: muestra.profundidadFin,
+              espresor: muestra.espresor, // sigue igual si se usa este campo
+              estrato: muestra.estrato,
+              descripcion: muestra.descripcion,
+              resultados: muestra.resultados,
+              granulometria: muestra.granulometria,
+              uscs: muestra.uscs,
+              tipoMuestra: muestra.tipoMuestra,
+              pdcLi: muestra.pdcLi,
+              pdcLf: muestra.pdcLf,
+              pdcGi: muestra.pdcGi,
+              apiqueId: id,
+            });
+          })
+        );
+      }
 
       // Obtener el proyecto actualizado para devolverlo
       const updatedApique = await Apique.findOne({ where: { id } });
@@ -261,7 +258,6 @@ if (muestras) {
         apique: updatedApique,
       });
     } catch (error) {
-      console.error("Error al actualizar apique:", error);
       res.status(500).json({
         error: "Error al actualizar el proyecto",
         details: error.message,
@@ -269,8 +265,6 @@ if (muestras) {
     }
   },
 ];
-
-
 
 exports.deleteApique = async (req, res) => {
   try {
@@ -303,8 +297,7 @@ exports.deleteApique = async (req, res) => {
       }
     });
 
-
-    const muestras = await SampleApique.destroy({where:{apiqueId:id}});
+    const muestras = await SampleApique.destroy({ where: { apiqueId: id } });
     const proyect = await Apique.destroy({ where: { id } });
     res.status(200).json(proyect);
   } catch (error) {
@@ -374,7 +367,7 @@ exports.generateExcel = async (req, res) => {
 
       sampleApique.forEach((muestra, index) => {
         const currentRow = startRow + index * rowsPerSample;
-        
+
         const row = worksheet.getRow(currentRow);
         row.eachCell((cell) => {
           cell.style = {}; // Reset completo de estilos
@@ -389,28 +382,31 @@ exports.generateExcel = async (req, res) => {
         worksheet.getCell(`C${currentRow}`).value = muestra.profundidadFin;
         worksheet.getCell(`D${currentRow}`).value = muestra.espresor;
 
- // 2. Aplicar SOLO a la celda E (Estinto)
- const cellE = worksheet.getCell(`E${currentRow}`);
-  
- // Reset completo de la celda E
- cellE.style = {};
- cellE.value = ''; // Valor vacío
- 
- // Validar y aplicar color HEX
- if (/^#?([0-9A-F]{3,6})$/i.test(muestra.estrato)) {
-   const hexColor = muestra.estrato.replace('#', '');
-   // Rellenar solo el fondo
-   cellE.fill = {
-     type: 'pattern',
-     pattern: 'solid',
-     fgColor: { argb: hexColor.length === 3 ? 
-       `${hexColor[0]}${hexColor[0]}${hexColor[1]}${hexColor[1]}${hexColor[2]}${hexColor[2]}` : 
-       hexColor.padEnd(6, '0') }
-   };
- } else {
-   cellE.value = muestra.estrato || '';
- }
-        
+        // 2. Aplicar SOLO a la celda E (Estinto)
+        const cellE = worksheet.getCell(`E${currentRow}`);
+
+        // Reset completo de la celda E
+        cellE.style = {};
+        cellE.value = ""; // Valor vacío
+
+        // Validar y aplicar color HEX
+        if (/^#?([0-9A-F]{3,6})$/i.test(muestra.estrato)) {
+          const hexColor = muestra.estrato.replace("#", "");
+          // Rellenar solo el fondo
+          cellE.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: {
+              argb:
+                hexColor.length === 3
+                  ? `${hexColor[0]}${hexColor[0]}${hexColor[1]}${hexColor[1]}${hexColor[2]}${hexColor[2]}`
+                  : hexColor.padEnd(6, "0"),
+            },
+          };
+        } else {
+          cellE.value = muestra.estrato || "";
+        }
+
         worksheet.getCell(`F${currentRow}`).value = muestra.descripcion;
         worksheet.getCell(`H${currentRow}`).value = muestra.resultados;
         worksheet.getCell(`I${currentRow}`).value = muestra.granulometria;

@@ -13,11 +13,26 @@ const InventoryController = require("../controllers/inventoryController");
 const userController = require("../controllers/userController");
 const apiqueController = require("../controllers/apiqueController");
 const sampleApiqueController = require("../controllers/sampleApiqueController");
+const environmentalController = require("../controllers/environmentalController");
 const validate = require("../middleware/validationScheme");
 
 router.get("/dashboard", async (req, res) => {});
 
 router.get("/myGroup/:id", usersGroupController.getUsersGroup);
+
+//routes for environmental
+router.get(
+  "/sampleEnvironmental/:environmentalId",
+  environmentalController.getSampleEnvironmentalById
+);
+router.get("/environmental", environmentalController.getEnvironmental);
+router.put("/environmental/:id", environmentalController.updateEnvironmental);
+router.get("/generateEnvironmental/:id", environmentalController.generateExcel);
+router.delete(
+  "/environmental/:id",
+  environmentalController.deleteEnvironmental
+);
+
 //rutas de sampleApique
 
 router.get(
@@ -113,7 +128,11 @@ router.put("/motions/:id/inactive", motionController.inactiveMotion);
 router.post("/accounts", validate("account"), accountController.createAccount);
 router.get("/accounts", accountController.getAccounts);
 router.delete("/accounts/:id", accountController.deleteAccount);
-router.put("/accounts/:id", validate("account"), accountController.updateAccount);
+router.put(
+  "/accounts/:id",
+  validate("account"),
+  accountController.updateAccount
+);
 router.put("/accounts/:id/active", accountController.activeAccount);
 router.put("/accounts/:id/inactive", accountController.inactiveAccount);
 

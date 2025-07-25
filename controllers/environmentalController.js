@@ -71,6 +71,100 @@ exports.getSampleEnvironmentalById = async (req, res) => {
   }
 };
 
+exports.deleteEnvironmental = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const buscar = await Environmental.findOne({ where: { id: id } });
+    if (!buscar) {
+      res.status(404).json({ message: "No se encontro el environmental" });
+    }
+
+    const condicions = await condicionsEnvironmental.findAll({
+      where: { idEnvironmental: id },
+    });
+
+    !condicions
+      ? res.status(404).json({ message: "No se encontraron registros" })
+      : await condicionsEnvironmental.destroy({
+          where: { idEnvironmental: id },
+        });
+
+    const environ = await Environmental.destroy({ where: { id: id } });
+
+    environ
+      ? res.status(200).json({ message: "Se ha eliminidado con exito" })
+      : res.status(500);
+  } catch (error) {
+    res.status(500).json({ error, message: "Ha ocurrido un error" });
+  }
+};
+
+exports.updateEnvironmental = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      nombre,
+      codigo,
+      norma,
+      especificacion,
+      rangoMedicion,
+      lugarMedicion,
+      conclusion,
+      muestras,
+    } = req.body;
+
+    const environ = await Environmental.findOne({ where: { id: id } });
+
+    !environ
+      ? res.status(404).json({ message: "Condicion ambiental no encontrada" })
+      : null;
+
+    const update = await Environmental.update(
+      {
+        nombre,
+        codigo,
+        norma,
+        especificacion,
+        rangoMedicion,
+        lugarMedicion,
+        conclusion,
+      },
+      { where: { id: id } }
+    );
+
+    !update
+      ? res.status(500).json({ message: "Ha ocurrido un error al modificar" })
+      : null;
+
+    let registrosActualizadas = [];
+    if (muestras) {
+      const muestrasArray = JSON.parse(muestras);
+      await condicionsEnvironmental.destroy({ where: { idEnvironmental: id } });
+      muestrasCreadas = await Promise.all(
+        muestrasArray.map(async (muestra) => {
+          return await condicionsEnvironmental.create({
+            fechaEjecucion: muestra.fechaEjecucion,
+            hora: muestra.hora,
+            temperatura: muestra.temperatura,
+            humedad: muestra.temperatura,
+            firma: muestra.firma,
+            observaciones: muestra.observaciones,
+            idEnvironmental: id,
+          });
+        })
+      );
+    }
+
+    const updateEnviron = await Environmental.findOne({ where: { id } });
+    res.status(200).json({
+      message: "Condicion ambiental actualizada correctamente",
+      environmental: updateEnviron,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Ha ocurrido un error" });
+  }
+};
+
 exports.generateExcel = async (req, res) => {
   try {
     const { id } = req.params;
@@ -106,11 +200,11 @@ exports.generateExcel = async (req, res) => {
       const lineas = sampleData.conclusion.split("\n").length;
       worksheet.getRow(42).height = Math.max(15, lineas * 15);
     }
-    // Insertar datos de sampleApique en A16:N24
+    // Insertar datos de sampleApique en B12:M26
     if (sampleApique.length > 0) {
-      const startRow = 12; // Fila inicial (A28)
+      const startRow = 12; // Fila inicial (b28)
       const endRow = 26; // Fila final (M26)
-      const startCol = 2; // Columna A (1)
+      const startCol = 2; // Columna B (2)
       const endCol = 13; // Columna M (13)
 
       sampleApique.forEach((muestra, index) => {
