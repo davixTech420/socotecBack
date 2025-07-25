@@ -20,7 +20,7 @@ const Environmental = sequelize.define("Environmental", {
     unique: false,
   },
   norma: {
-    type: DataTypes.STRING  ,
+    type: DataTypes.STRING,
     allowNull: false,
     unique: false,
   },
