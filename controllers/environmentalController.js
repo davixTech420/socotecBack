@@ -139,6 +139,22 @@ exports.updateEnvironmental = async (req, res) => {
     let registrosActualizadas = [];
     if (muestras) {
       const muestrasArray = JSON.parse(muestras);
+      // Validar que no haya más de 3 muestras con la misma fechaEjecucion
+      const conteoPorFecha = {};
+
+      for (const muestra of muestrasArray) {
+        const fecha = muestra.fechaEjecucion;
+
+        conteoPorFecha[fecha] = (conteoPorFecha[fecha] || 0) + 1;
+
+        if (conteoPorFecha[fecha] > 3) {
+          return res
+            .status(500)
+            .json({
+              message: `Solo se permiten hasta 3 registros con la fecha ${fecha}`,
+            });
+        }
+      }
       await condicionsEnvironmental.destroy({ where: { idEnvironmental: id } });
       muestrasCreadas = await Promise.all(
         muestrasArray.map(async (muestra) => {
