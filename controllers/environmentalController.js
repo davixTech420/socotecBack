@@ -162,7 +162,7 @@ exports.updateEnvironmental = async (req, res) => {
             fechaEjecucion: muestra.fechaEjecucion,
             hora: muestra.hora,
             temperatura: muestra.temperatura,
-            humedad: muestra.temperatura,
+            humedad: muestra.humedad,
             firma: muestra.firma,
             observaciones: muestra.observaciones,
             idEnvironmental: id,
