@@ -242,7 +242,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, role: user.role, email: user.email, nombre: user.nombre, telefono: user.telefono,cargo:cargo },
       process.env.JWT_SECRET,
-      { expiresIn: "5h" }
+      { expiresIn: "550h" }
     );
     return res.json({ token, role: user.role });
   } catch (error) {
@@ -263,7 +263,7 @@ exports.emailPassword = async (req, res) => {
     }
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '10m' });
 
-    const resetLink = `http://10.48.5.67:8081/forgotPass/${token}`;
+    const resetLink = `https://socotec.vercel.app/forgotPass/${token}`;
     //autenticacion para enviar los gmails/
     const oAuth2Client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_REDIRECT_URI);
     oAuth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });

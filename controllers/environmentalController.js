@@ -2,6 +2,13 @@ const Environmental = require("../models/environmental");
 const condicionsEnvironmental = require("../models/condicionsEnvironmental");
 const path = require("path");
 const ExcelJS = require("exceljs");
+const moment = require('moment-timezone');
+const { Op } = require("sequelize");
+
+// Función para obtener la hora actual en Colombia
+const getColombiaTime = () => {
+  return moment().tz('America/Bogota').format('HH:mm:ss');
+};
 
 exports.createEnvironmental = async (req, res) => {
   try {
@@ -113,80 +120,131 @@ exports.updateEnvironmental = async (req, res) => {
       muestras,
     } = req.body;
 
-    const environ = await Environmental.findOne({ where: { id: id } });
-
-    !environ
-      ? res.status(404).json({ message: "Condicion ambiental no encontrada" })
-      : null;
-
-    const update = await Environmental.update(
-      {
-        nombre,
-        codigo,
-        norma,
-        especificacion,
-        rangoMedicion,
-        lugarMedicion,
-        conclusion,
-      },
-      { where: { id: id } }
-    );
-
-    !update
-      ? res.status(500).json({ message: "Ha ocurrido un error al modificar" })
-      : null;
-
-    let registrosActualizadas = [];
-    if (muestras) {
-      const muestrasArray = JSON.parse(muestras);
-      // Validar que no haya más de 3 muestras con la misma fechaEjecucion
-      const conteoPorFecha = {};
-
-      for (const muestra of muestrasArray) {
-        const fecha = muestra.fechaEjecucion;
-
-        conteoPorFecha[fecha] = (conteoPorFecha[fecha] || 0) + 1;
-
-        if (conteoPorFecha[fecha] > 3) {
-          return res
-            .status(500)
-            .json({
-              message: `Solo se permiten hasta 3 registros con la fecha ${fecha}`,
-            });
-        }
-      }
-      await condicionsEnvironmental.destroy({ where: { idEnvironmental: id } });
-      muestrasCreadas = await Promise.all(
-        muestrasArray.map(async (muestra) => {
-          return await condicionsEnvironmental.create({
-            fechaEjecucion: muestra.fechaEjecucion,
-            hora: muestra.hora,
-            temperatura: muestra.temperatura,
-            humedad: muestra.humedad,
-            firma: muestra.firma,
-            observaciones: muestra.observaciones,
-            idEnvironmental: id,
-          });
-        })
-      );
+    // 1️⃣ Buscar environmental
+    const environ = await Environmental.findByPk(id);
+    if (!environ) {
+      return res.status(404).json({ message: "Condición ambiental no encontrada" });
     }
 
-    const updateEnviron = await Environmental.findOne({ where: { id } });
-    res.status(200).json({
-      message: "Condicion ambiental actualizada correctamente",
-      environmental: updateEnviron,
+    // 2️⃣ Actualizar datos principales
+    await environ.update({
+      nombre,
+      codigo,
+      norma,
+      especificacion,
+      rangoMedicion,
+      lugarMedicion,
+      conclusion,
     });
+
+    // 3️⃣ Procesar muestras
+    if (muestras) {
+      const muestrasArray = JSON.parse(muestras);
+
+      // 3.1 Obtener las que ya están en BD
+      const registrosEnBD = await condicionsEnvironmental.findAll({
+        where: { idEnvironmental: id }
+      });
+      const idsEnBD = registrosEnBD.map(r => r.id);
+
+      // 3.2 Detectar nuevas (no tienen id o no existen en BD)
+      const nuevasMuestras = muestrasArray.filter(m =>
+        !m.id || !idsEnBD.includes(m.id)
+      ).map(m => ({
+        ...m,
+        fechaEjecucion: moment.tz("America/Bogota").format("YYYY-MM-DD"),
+        hora: moment.tz("America/Bogota").format("HH:mm:ss"),
+        idEnvironmental: id
+      }));
+
+      // 3.3 Validar máximo 3 registros por fecha para nuevas
+      for (const muestra of nuevasMuestras) {
+        const fechaAValidar = muestra.fechaEjecucion;
+
+        const registrosExistentes = await condicionsEnvironmental.count({
+          where: { idEnvironmental: id, fechaEjecucion: fechaAValidar }
+        });
+
+        const nuevosEnEstaFecha = nuevasMuestras.filter(
+          m => m.fechaEjecucion === fechaAValidar
+        ).length;
+
+        if (registrosExistentes + nuevosEnEstaFecha > 3) {
+          return res.status(400).json({
+            message: `Solo se permiten hasta 3 registros para la fecha ${fechaAValidar}`,
+          });
+        }
+      }
+
+      // 3.4 Insertar nuevas
+      if (nuevasMuestras.length > 0) {
+        await condicionsEnvironmental.bulkCreate(nuevasMuestras);
+      }
+
+      // 3.5 Eliminar las que ya no están en el front
+      const idsEnviados = muestrasArray.filter(m => m.id).map(m => m.id);
+      const idsAEliminar = idsEnBD.filter(idExistente => !idsEnviados.includes(idExistente));
+
+      if (idsAEliminar.length > 0) {
+        await condicionsEnvironmental.destroy({
+          where: { id: idsAEliminar }
+        });
+      }
+    }
+
+    // 4️⃣ Respuesta final
+    const updateEnviron = await Environmental.findByPk(id);
+    const condiciones = await condicionsEnvironmental.findAll({ where: { idEnvironmental: id } });
+
+    res.status(200).json({
+      message: "Condición ambiental actualizada correctamente",
+      environmental: updateEnviron,
+      condiciones
+    });
+
   } catch (error) {
+    console.error("Error en updateEnvironmental:", error);
     res.status(500).json({ message: "Ha ocurrido un error" });
   }
 };
+
 
 exports.generateExcel = async (req, res) => {
   try {
     const { id } = req.params;
     const sampleData = await Environmental.findOne({ where: { id: id } });
-    const sampleApique = await condicionsEnvironmental.findAll({
+    let sampleApique = await condicionsEnvironmental.findAll({
       where: { idEnvironmental: id },
+      order: [["fechaEjecucion", "ASC"], ["hora", "ASC"]],
+    });
+
+    // Agrupar por fechaEjecucion
+    const gruposPorFecha = {};
+    sampleApique.forEach((muestra) => {
+      const fecha = muestra.fechaEjecucion;
+      if (!gruposPorFecha[fecha]) {
+        gruposPorFecha[fecha] = [];
+      }
+      gruposPorFecha[fecha].push(muestra);
+    });
+
+    // Normalizar: cada fecha debe tener 3 registros (rellenar con vacíos si faltan)
+    const datosFinales = [];
+    Object.keys(gruposPorFecha).forEach((fecha) => {
+      const registros = gruposPorFecha[fecha];
+      // Agregar registros existentes
+      registros.forEach((m) => datosFinales.push(m));
+      // Si hay menos de 3, rellenar vacíos
+      for (let i = registros.length; i < 3; i++) {
+        datosFinales.push({
+          fechaEjecucion: fecha,
+          hora: "",
+          temperatura: "",
+          humedad: "",
+          firma: "",
+          observaciones: "",
+        });
+      }
     });
 
     // Cargar plantilla
@@ -198,45 +256,33 @@ exports.generateExcel = async (req, res) => {
     await workbook.xlsx.readFile(plantillaPath);
     const worksheet = workbook.getWorksheet("Condiciones ambientales (2)");
 
-    // Rellenar datos existentes (como en tu código original)
-    worksheet.getCell("D4").value = sampleData.nombre; // Informe No.
-    worksheet.getCell("K4").value = sampleData.codigo; // Albarán No.
+    // Rellenar datos del encabezado
+    worksheet.getCell("D4").value = sampleData.nombre;
+    worksheet.getCell("K4").value = sampleData.codigo;
+    worksheet.getCell("D6").value = sampleData.norma;
+    worksheet.getCell("K6").value = sampleData.especificacion;
+    worksheet.getCell("D8").value = sampleData.rangoMedicion;
+    worksheet.getCell("K8").value = sampleData.lugarMedicion;
 
-    worksheet.getCell("D6").value = sampleData.norma; // Cliente
-    worksheet.getCell("K6").value = sampleData.especificacion; // Fecha inicio
-    worksheet.getCell("D8").value = sampleData.rangoMedicion; // Fecha final
-    worksheet.getCell("K8").value = sampleData.lugarMedicion; // Fecha emisión
-
-    // Sección de observaciones
     if (sampleData.conclusion) {
-      const observacionesCell = worksheet.getCell("A28");
-      observacionesCell.value = sampleData.conclusion;
-
-      // Ajustar el alto de la fila si las observaciones son largas
+      worksheet.getCell("A28").value = sampleData.conclusion;
       const lineas = sampleData.conclusion.split("\n").length;
       worksheet.getRow(42).height = Math.max(15, lineas * 15);
     }
-    // Insertar datos de sampleApique en B12:M26
-    if (sampleApique.length > 0) {
-      const startRow = 12; // Fila inicial (b28)
-      const endRow = 26; // Fila final (M26)
-      const startCol = 2; // Columna B (2)
-      const endCol = 13; // Columna M (13)
 
-      sampleApique.forEach((muestra, index) => {
-        const currentRow = startRow + index;
+    // Insertar datos en B12:M26
+    const startRow = 12;
+    datosFinales.forEach((muestra, index) => {
+      const currentRow = startRow + index;
+      worksheet.getCell(`B${currentRow}`).value = muestra.fechaEjecucion;
+      worksheet.getCell(`E${currentRow}`).value = muestra.hora;
+      worksheet.getCell(`F${currentRow}`).value = muestra.temperatura;
+      worksheet.getCell(`H${currentRow}`).value = muestra.humedad;
+      worksheet.getCell(`J${currentRow}`).value = muestra.firma;
+      worksheet.getCell(`L${currentRow}`).value = muestra.observaciones;
+    });
 
-        // Datos básicos (ajusta según tus necesidades)
-        worksheet.getCell(`B${currentRow}`).value = muestra.fechaEjecucion;
-        worksheet.getCell(`E${currentRow}`).value = muestra.hora;
-        worksheet.getCell(`F${currentRow}`).value = muestra.temperatura;
-        worksheet.getCell(`H${currentRow}`).value = muestra.humedad;
-        worksheet.getCell(`J${currentRow}`).value = muestra.firma;
-        worksheet.getCell(`L${currentRow}`).value = muestra.observaciones;
-      });
-    }
-
-    // Configurar respuesta
+    // Enviar archivo al cliente
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
