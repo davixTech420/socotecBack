@@ -2,12 +2,17 @@ const Environmental = require("../models/environmental");
 const condicionsEnvironmental = require("../models/condicionsEnvironmental");
 const path = require("path");
 const ExcelJS = require("exceljs");
-const moment = require('moment-timezone');
+const moment = require("moment-timezone");
 const { Op } = require("sequelize");
+const dayjs = require("dayjs");
+require("dayjs/locale/es");
+dayjs.locale("es");
+const isoWeek = require("dayjs/plugin/isoWeek");
+dayjs.extend(isoWeek);
 
 // Función para obtener la hora actual en Colombia
 const getColombiaTime = () => {
-  return moment().tz('America/Bogota').format('HH:mm:ss');
+  return moment().tz("America/Bogota").format("HH:mm:ss");
 };
 
 exports.createEnvironmental = async (req, res) => {
@@ -123,7 +128,9 @@ exports.updateEnvironmental = async (req, res) => {
     // 1️⃣ Buscar environmental
     const environ = await Environmental.findByPk(id);
     if (!environ) {
-      return res.status(404).json({ message: "Condición ambiental no encontrada" });
+      return res
+        .status(404)
+        .json({ message: "Condición ambiental no encontrada" });
     }
 
     // 2️⃣ Actualizar datos principales
@@ -143,30 +150,30 @@ exports.updateEnvironmental = async (req, res) => {
 
       // 3.1 Obtener las que ya están en BD
       const registrosEnBD = await condicionsEnvironmental.findAll({
-        where: { idEnvironmental: id }
+        where: { idEnvironmental: id },
       });
-      const idsEnBD = registrosEnBD.map(r => r.id);
+      const idsEnBD = registrosEnBD.map((r) => r.id);
 
       // 3.2 Detectar nuevas (no tienen id o no existen en BD)
-      const nuevasMuestras = muestrasArray.filter(m =>
-        !m.id || !idsEnBD.includes(m.id)
-      ).map(m => ({
-        ...m,
-        fechaEjecucion: moment.tz("America/Bogota").format("YYYY-MM-DD"),
-        hora: moment.tz("America/Bogota").format("HH:mm:ss"),
-        idEnvironmental: id
-      }));
+      const nuevasMuestras = muestrasArray
+        .filter((m) => !m.id || !idsEnBD.includes(m.id))
+        .map((m) => ({
+          ...m,
+          fechaEjecucion: moment.tz("America/Bogota").format("YYYY-MM-DD"),
+          hora: moment.tz("America/Bogota").format("HH:mm:ss"),
+          idEnvironmental: id,
+        }));
 
       // 3.3 Validar máximo 3 registros por fecha para nuevas
       for (const muestra of nuevasMuestras) {
         const fechaAValidar = muestra.fechaEjecucion;
 
         const registrosExistentes = await condicionsEnvironmental.count({
-          where: { idEnvironmental: id, fechaEjecucion: fechaAValidar }
+          where: { idEnvironmental: id, fechaEjecucion: fechaAValidar },
         });
 
         const nuevosEnEstaFecha = nuevasMuestras.filter(
-          m => m.fechaEjecucion === fechaAValidar
+          (m) => m.fechaEjecucion === fechaAValidar
         ).length;
 
         if (registrosExistentes + nuevosEnEstaFecha > 3) {
@@ -182,107 +189,272 @@ exports.updateEnvironmental = async (req, res) => {
       }
 
       // 3.5 Eliminar las que ya no están en el front
-      const idsEnviados = muestrasArray.filter(m => m.id).map(m => m.id);
-      const idsAEliminar = idsEnBD.filter(idExistente => !idsEnviados.includes(idExistente));
+      const idsEnviados = muestrasArray.filter((m) => m.id).map((m) => m.id);
+      const idsAEliminar = idsEnBD.filter(
+        (idExistente) => !idsEnviados.includes(idExistente)
+      );
 
       if (idsAEliminar.length > 0) {
         await condicionsEnvironmental.destroy({
-          where: { id: idsAEliminar }
+          where: { id: idsAEliminar },
         });
       }
     }
 
     // 4️⃣ Respuesta final
     const updateEnviron = await Environmental.findByPk(id);
-    const condiciones = await condicionsEnvironmental.findAll({ where: { idEnvironmental: id } });
+    const condiciones = await condicionsEnvironmental.findAll({
+      where: { idEnvironmental: id },
+    });
 
     res.status(200).json({
       message: "Condición ambiental actualizada correctamente",
       environmental: updateEnviron,
-      condiciones
+      condiciones,
     });
-
   } catch (error) {
     console.error("Error en updateEnvironmental:", error);
     res.status(500).json({ message: "Ha ocurrido un error" });
   }
 };
 
-
 exports.generateExcel = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // --- Consultas ---
     const sampleData = await Environmental.findOne({ where: { id: id } });
     let sampleApique = await condicionsEnvironmental.findAll({
       where: { idEnvironmental: id },
       order: [["fechaEjecucion", "ASC"], ["hora", "ASC"]],
     });
 
-    // Agrupar por fechaEjecucion
-    const gruposPorFecha = {};
-    sampleApique.forEach((muestra) => {
-      const fecha = muestra.fechaEjecucion;
-      if (!gruposPorFecha[fecha]) {
-        gruposPorFecha[fecha] = [];
-      }
-      gruposPorFecha[fecha].push(muestra);
+    const dayjs = require("dayjs");
+    require("dayjs/locale/es");
+    dayjs.locale("es");
+
+    // Convertir todas las fechas a dayjs
+    sampleApique = sampleApique.map(m => ({
+      ...m.dataValues,
+      fechaEjecucion: dayjs(m.fechaEjecucion)
+    }));
+
+    // --- Crear lista única de fechas ---
+    const fechasRegistradas = [
+      ...new Set(sampleApique.map(m => m.fechaEjecucion.format("YYYY-MM-DD")))
+    ].map(f => dayjs(f));
+
+    // Encontrar primera y última fecha
+    let primeraFecha = fechasRegistradas[0];
+    let ultimaFecha = fechasRegistradas[0];
+    fechasRegistradas.forEach(f => {
+      if (f.isBefore(primeraFecha)) primeraFecha = f;
+      if (f.isAfter(ultimaFecha)) ultimaFecha = f;
     });
 
-    // Normalizar: cada fecha debe tener 3 registros (rellenar con vacíos si faltan)
-    const datosFinales = [];
-    Object.keys(gruposPorFecha).forEach((fecha) => {
-      const registros = gruposPorFecha[fecha];
-      // Agregar registros existentes
-      registros.forEach((m) => datosFinales.push(m));
-      // Si hay menos de 3, rellenar vacíos
-      for (let i = registros.length; i < 3; i++) {
-        datosFinales.push({
-          fechaEjecucion: fecha,
+    // Ajustar a lunes y viernes
+    while (primeraFecha.day() !== 1) {
+      primeraFecha = primeraFecha.subtract(1, "day");
+    }
+    while (ultimaFecha.day() !== 5) {
+      ultimaFecha = ultimaFecha.add(1, "day");
+    }
+
+    // --- Crear estructura de semanas ---
+    const semanas = [];
+    let semanaActual = [];
+    let fechaIter = primeraFecha.clone();
+
+    while (fechaIter.isBefore(ultimaFecha) || fechaIter.isSame(ultimaFecha, "day")) {
+      if (fechaIter.day() >= 1 && fechaIter.day() <= 5) {
+        const registrosDia = sampleApique.filter(m =>
+          m.fechaEjecucion.isSame(fechaIter, "day")
+        );
+
+        // Completar hasta 3 registros
+        while (registrosDia.length < 3) {
+          registrosDia.push({
+            fechaEjecucion: fechaIter.clone(), // siempre dayjs
+            hora: "",
+            temperatura: "",
+            humedad: "",
+            firma: "",
+            observaciones: ""
+          });
+        }
+
+        semanaActual.push(...registrosDia);
+
+        // Si ya son 15 filas, cerrar la semana
+        if (semanaActual.length === 15) {
+          semanas.push(semanaActual);
+          semanaActual = [];
+        }
+      }
+      fechaIter = fechaIter.add(1, "day");
+    }
+
+    // Si quedó incompleta, rellenar
+    if (semanaActual.length > 0) {
+      while (semanaActual.length < 15) {
+        semanaActual.push({
+          fechaEjecucion: null,
           hora: "",
           temperatura: "",
           humedad: "",
           firma: "",
-          observaciones: "",
+          observaciones: ""
         });
       }
-    });
+      semanas.push(semanaActual);
+    }
 
-    // Cargar plantilla
+    // --- Cargar plantilla ---
     const plantillaPath = path.join(
       __dirname,
       "../public/templates/PlantillaAmbiental.xlsx"
     );
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(plantillaPath);
-    const worksheet = workbook.getWorksheet("Condiciones ambientales (2)");
+    const plantillaWorkbook = new ExcelJS.Workbook();
+    await plantillaWorkbook.xlsx.readFile(plantillaPath);
 
-    // Rellenar datos del encabezado
-    worksheet.getCell("D4").value = sampleData.nombre;
-    worksheet.getCell("K4").value = sampleData.codigo;
-    worksheet.getCell("D6").value = sampleData.norma;
-    worksheet.getCell("K6").value = sampleData.especificacion;
-    worksheet.getCell("D8").value = sampleData.rangoMedicion;
-    worksheet.getCell("K8").value = sampleData.lugarMedicion;
+    const hojaBase = plantillaWorkbook.getWorksheet(
+      "Condiciones ambientales (2)"
+    );
+    if (!hojaBase)
+      throw new Error("No se encontró la hoja 'Condiciones ambientales (2)' en la plantilla.");
 
-    if (sampleData.conclusion) {
-      worksheet.getCell("A28").value = sampleData.conclusion;
-      const lineas = sampleData.conclusion.split("\n").length;
-      worksheet.getRow(42).height = Math.max(15, lineas * 15);
+    // Guardar imágenes
+    const imagesInfo = [];
+    const hojaImages = typeof hojaBase.getImages === "function" ? hojaBase.getImages() : [];
+    const colNumToLetter = (n) => {
+      let s = "";
+      let num = n;
+      while (num >= 0) {
+        s = String.fromCharCode((num % 26) + 65) + s;
+        num = Math.floor(num / 26) - 1;
+      }
+      return s;
+    };
+    const rangeObjToA1 = (rng) => {
+      if (!rng) return null;
+      if (typeof rng === "string") return rng;
+      if (rng.tl && rng.br) {
+        const a = `${colNumToLetter(rng.tl.col)}${rng.tl.row + 1}`;
+        const b = `${colNumToLetter(rng.br.col)}${rng.br.row + 1}`;
+        return `${a}:${b}`;
+      }
+      return null;
+    };
+    for (const img of hojaImages) {
+      try {
+        const imageId = img.imageId;
+        const imgData = plantillaWorkbook.getImage(imageId);
+        if (imgData && imgData.buffer) {
+          imagesInfo.push({
+            buffer: imgData.buffer,
+            extension: imgData.extension,
+            range: rangeObjToA1(img.range) || "A1:C2",
+          });
+        }
+      } catch (err) {
+        console.warn("No pude leer una imagen:", err?.message || err);
+      }
     }
 
-    // Insertar datos en B12:M26
-    const startRow = 12;
-    datosFinales.forEach((muestra, index) => {
-      const currentRow = startRow + index;
-      worksheet.getCell(`B${currentRow}`).value = muestra.fechaEjecucion;
-      worksheet.getCell(`E${currentRow}`).value = muestra.hora;
-      worksheet.getCell(`F${currentRow}`).value = muestra.temperatura;
-      worksheet.getCell(`H${currentRow}`).value = muestra.humedad;
-      worksheet.getCell(`J${currentRow}`).value = muestra.firma;
-      worksheet.getCell(`L${currentRow}`).value = muestra.observaciones;
+    // --- Crear nuevo libro ---
+    const workbook = new ExcelJS.Workbook();
+    const obtenerMerges = (ws) => {
+      const merges = new Set();
+      if (ws.model && Array.isArray(ws.model.merges)) ws.model.merges.forEach(m => merges.add(m));
+      if (ws._merges) {
+        if (typeof ws._merges.keys === "function") {
+          for (const k of ws._merges.keys()) merges.add(k);
+        } else {
+          for (const k in ws._merges) merges.add(k);
+        }
+      }
+      return Array.from(merges);
+    };
+    const clonarHojaCompleta = (nombreHoja) => {
+      const nuevaHoja = workbook.addWorksheet(nombreHoja);
+      nuevaHoja.properties = { ...(hojaBase.properties || {}) };
+      if (hojaBase.pageSetup) nuevaHoja.pageSetup = { ...hojaBase.pageSetup };
+      if (hojaBase.views) nuevaHoja.views = hojaBase.views;
+
+      const maxCol = hojaBase.columnCount;
+      for (let c = 1; c <= maxCol; c++) {
+        const sc = hojaBase.getColumn(c);
+        const dc = nuevaHoja.getColumn(c);
+        if (sc.width) dc.width = sc.width;
+        if (sc.style) dc.style = { ...sc.style };
+      }
+
+      const usedMaxRow = hojaBase.rowCount;
+      for (let r = 1; r <= usedMaxRow; r++) {
+        const row = hojaBase.getRow(r);
+        const newRow = nuevaHoja.getRow(r);
+        if (row.height) newRow.height = row.height;
+        for (let c = 1; c <= maxCol; c++) {
+          const cell = row.getCell(c);
+          const newCell = newRow.getCell(c);
+          newCell.value = cell.value;
+          if (cell.style) newCell.style = JSON.parse(JSON.stringify(cell.style));
+          if (cell.numFmt) newCell.numFmt = cell.numFmt;
+        }
+      }
+
+      obtenerMerges(hojaBase).forEach(m => {
+        try { nuevaHoja.mergeCells(m); } catch {}
+      });
+
+      imagesInfo.forEach(imgInfo => {
+        try {
+          const newImageId = workbook.addImage({
+            buffer: imgInfo.buffer,
+            extension: imgInfo.extension,
+          });
+          nuevaHoja.addImage(newImageId, imgInfo.range);
+        } catch {}
+      });
+
+      return nuevaHoja;
+    };
+
+    // --- Crear hojas por semana ---
+    semanas.forEach((semana, index) => {
+      const nombre = index === 0 ? hojaBase.name : `Semana ${index + 1}`;
+      const worksheet = clonarHojaCompleta(nombre);
+
+      worksheet.getCell("D4").value = sampleData.nombre;
+      worksheet.getCell("K4").value = sampleData.codigo;
+      worksheet.getCell("D6").value = sampleData.norma;
+      worksheet.getCell("K6").value = sampleData.especificacion;
+      worksheet.getCell("D8").value = sampleData.rangoMedicion;
+      worksheet.getCell("K8").value = sampleData.lugarMedicion;
+
+      if (sampleData.conclusion) {
+        worksheet.getCell("A28").value = sampleData.conclusion;
+        const lineas = sampleData.conclusion.split("\n").length;
+        worksheet.getRow(42).height = Math.max(15, lineas * 15);
+      }
+
+      // Insertar registros
+      const startRow = 12;
+      semana.forEach((muestra, i) => {
+        const currentRow = startRow + i;
+        worksheet.getCell(`B${currentRow}`).value =
+          muestra.fechaEjecucion && dayjs.isDayjs(muestra.fechaEjecucion)
+            ? muestra.fechaEjecucion.format("YYYY-MM-DD")
+            : "";
+        worksheet.getCell(`E${currentRow}`).value = muestra.hora;
+        worksheet.getCell(`F${currentRow}`).value = muestra.temperatura;
+        worksheet.getCell(`H${currentRow}`).value = muestra.humedad;
+        worksheet.getCell(`J${currentRow}`).value = muestra.firma;
+        worksheet.getCell(`L${currentRow}`).value = muestra.observaciones;
+      });
     });
 
-    // Enviar archivo al cliente
+    // --- Responder con archivo ---
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -293,8 +465,9 @@ exports.generateExcel = async (req, res) => {
     );
     await workbook.xlsx.write(res);
     res.end();
+
   } catch (error) {
     console.error("Error al generar Excel:", error);
-    res.status(500).json({ error: "Error al generar el Excel" });
+    res.status(500).json({ error: "Error al generar el Excel", details: error.message });
   }
 };
