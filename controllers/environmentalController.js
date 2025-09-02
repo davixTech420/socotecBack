@@ -5,6 +5,8 @@ const ExcelJS = require("exceljs");
 const moment = require("moment-timezone");
 const { Op } = require("sequelize");
 const dayjs = require("dayjs");
+const archiver = require("archiver"); // para crear ZIP
+const stream = require("stream");
 require("dayjs/locale/es");
 dayjs.locale("es");
 const isoWeek = require("dayjs/plugin/isoWeek");
@@ -218,6 +220,8 @@ exports.updateEnvironmental = async (req, res) => {
   }
 };
 
+
+
 exports.generateExcel = async (req, res) => {
   try {
     const { id } = req.params;
@@ -226,90 +230,33 @@ exports.generateExcel = async (req, res) => {
     const sampleData = await Environmental.findOne({ where: { id: id } });
     let sampleApique = await condicionsEnvironmental.findAll({
       where: { idEnvironmental: id },
-      order: [["fechaEjecucion", "ASC"], ["hora", "ASC"]],
+      order: [
+        ["fechaEjecucion", "ASC"],
+        ["hora", "ASC"],
+      ],
     });
-
-    const dayjs = require("dayjs");
-    require("dayjs/locale/es");
-    dayjs.locale("es");
 
     // Convertir todas las fechas a dayjs
-    sampleApique = sampleApique.map(m => ({
+    sampleApique = sampleApique.map((m) => ({
       ...m.dataValues,
-      fechaEjecucion: dayjs(m.fechaEjecucion)
+      fechaEjecucion: dayjs(m.fechaEjecucion),
     }));
 
-    // --- Crear lista única de fechas ---
-    const fechasRegistradas = [
-      ...new Set(sampleApique.map(m => m.fechaEjecucion.format("YYYY-MM-DD")))
-    ].map(f => dayjs(f));
+    if (sampleApique.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No hay registros para generar el Excel" });
+    }
 
-    // Encontrar primera y última fecha
-    let primeraFecha = fechasRegistradas[0];
-    let ultimaFecha = fechasRegistradas[0];
-    fechasRegistradas.forEach(f => {
-      if (f.isBefore(primeraFecha)) primeraFecha = f;
-      if (f.isAfter(ultimaFecha)) ultimaFecha = f;
+    // --- Agrupar registros por mes ---
+    const registrosPorMes = {};
+    sampleApique.forEach((m) => {
+      const claveMes = m.fechaEjecucion.format("YYYY-MM");
+      if (!registrosPorMes[claveMes]) registrosPorMes[claveMes] = [];
+      registrosPorMes[claveMes].push(m);
     });
 
-    // Ajustar a lunes y viernes
-    while (primeraFecha.day() !== 1) {
-      primeraFecha = primeraFecha.subtract(1, "day");
-    }
-    while (ultimaFecha.day() !== 5) {
-      ultimaFecha = ultimaFecha.add(1, "day");
-    }
-
-    // --- Crear estructura de semanas ---
-    const semanas = [];
-    let semanaActual = [];
-    let fechaIter = primeraFecha.clone();
-
-    while (fechaIter.isBefore(ultimaFecha) || fechaIter.isSame(ultimaFecha, "day")) {
-      if (fechaIter.day() >= 1 && fechaIter.day() <= 5) {
-        const registrosDia = sampleApique.filter(m =>
-          m.fechaEjecucion.isSame(fechaIter, "day")
-        );
-
-        // Completar hasta 3 registros
-        while (registrosDia.length < 3) {
-          registrosDia.push({
-            fechaEjecucion: fechaIter.clone(), // siempre dayjs
-            hora: "",
-            temperatura: "",
-            humedad: "",
-            firma: "",
-            observaciones: ""
-          });
-        }
-
-        semanaActual.push(...registrosDia);
-
-        // Si ya son 15 filas, cerrar la semana
-        if (semanaActual.length === 15) {
-          semanas.push(semanaActual);
-          semanaActual = [];
-        }
-      }
-      fechaIter = fechaIter.add(1, "day");
-    }
-
-    // Si quedó incompleta, rellenar
-    if (semanaActual.length > 0) {
-      while (semanaActual.length < 15) {
-        semanaActual.push({
-          fechaEjecucion: null,
-          hora: "",
-          temperatura: "",
-          humedad: "",
-          firma: "",
-          observaciones: ""
-        });
-      }
-      semanas.push(semanaActual);
-    }
-
-    // --- Cargar plantilla ---
+    // --- Cargar plantilla base ---
     const plantillaPath = path.join(
       __dirname,
       "../public/templates/PlantillaAmbiental.xlsx"
@@ -321,11 +268,14 @@ exports.generateExcel = async (req, res) => {
       "Condiciones ambientales (2)"
     );
     if (!hojaBase)
-      throw new Error("No se encontró la hoja 'Condiciones ambientales (2)' en la plantilla.");
+      throw new Error(
+        "No se encontró la hoja 'Condiciones ambientales (2)' en la plantilla."
+      );
 
-    // Guardar imágenes
+    // Guardar imágenes de la plantilla
     const imagesInfo = [];
-    const hojaImages = typeof hojaBase.getImages === "function" ? hojaBase.getImages() : [];
+    const hojaImages =
+      typeof hojaBase.getImages === "function" ? hojaBase.getImages() : [];
     const colNumToLetter = (n) => {
       let s = "";
       let num = n;
@@ -356,16 +306,14 @@ exports.generateExcel = async (req, res) => {
             range: rangeObjToA1(img.range) || "A1:C2",
           });
         }
-      } catch (err) {
-        console.warn("No pude leer una imagen:", err?.message || err);
-      }
+      } catch {}
     }
 
-    // --- Crear nuevo libro ---
-    const workbook = new ExcelJS.Workbook();
+    // Función para clonar hoja de la plantilla
     const obtenerMerges = (ws) => {
       const merges = new Set();
-      if (ws.model && Array.isArray(ws.model.merges)) ws.model.merges.forEach(m => merges.add(m));
+      if (ws.model && Array.isArray(ws.model.merges))
+        ws.model.merges.forEach((m) => merges.add(m));
       if (ws._merges) {
         if (typeof ws._merges.keys === "function") {
           for (const k of ws._merges.keys()) merges.add(k);
@@ -375,7 +323,7 @@ exports.generateExcel = async (req, res) => {
       }
       return Array.from(merges);
     };
-    const clonarHojaCompleta = (nombreHoja) => {
+    const clonarHojaCompleta = (workbook, nombreHoja) => {
       const nuevaHoja = workbook.addWorksheet(nombreHoja);
       nuevaHoja.properties = { ...(hojaBase.properties || {}) };
       if (hojaBase.pageSetup) nuevaHoja.pageSetup = { ...hojaBase.pageSetup };
@@ -398,16 +346,19 @@ exports.generateExcel = async (req, res) => {
           const cell = row.getCell(c);
           const newCell = newRow.getCell(c);
           newCell.value = cell.value;
-          if (cell.style) newCell.style = JSON.parse(JSON.stringify(cell.style));
+          if (cell.style)
+            newCell.style = JSON.parse(JSON.stringify(cell.style));
           if (cell.numFmt) newCell.numFmt = cell.numFmt;
         }
       }
 
-      obtenerMerges(hojaBase).forEach(m => {
-        try { nuevaHoja.mergeCells(m); } catch {}
+      obtenerMerges(hojaBase).forEach((m) => {
+        try {
+          nuevaHoja.mergeCells(m);
+        } catch {}
       });
 
-      imagesInfo.forEach(imgInfo => {
+      imagesInfo.forEach((imgInfo) => {
         try {
           const newImageId = workbook.addImage({
             buffer: imgInfo.buffer,
@@ -420,54 +371,153 @@ exports.generateExcel = async (req, res) => {
       return nuevaHoja;
     };
 
-    // --- Crear hojas por semana ---
-    semanas.forEach((semana, index) => {
-      const nombre = index === 0 ? hojaBase.name : `Semana ${index + 1}`;
-      const worksheet = clonarHojaCompleta(nombre);
+    // --- Crear archivos por mes ---
+    const excelBuffers = [];
 
-      worksheet.getCell("D4").value = sampleData.nombre;
-      worksheet.getCell("K4").value = sampleData.codigo;
-      worksheet.getCell("D6").value = sampleData.norma;
-      worksheet.getCell("K6").value = sampleData.especificacion;
-      worksheet.getCell("D8").value = sampleData.rangoMedicion;
-      worksheet.getCell("K8").value = sampleData.lugarMedicion;
+    for (const claveMes of Object.keys(registrosPorMes)) {
+      const registros = registrosPorMes[claveMes];
 
-      if (sampleData.conclusion) {
-        worksheet.getCell("A28").value = sampleData.conclusion;
-        const lineas = sampleData.conclusion.split("\n").length;
-        worksheet.getRow(42).height = Math.max(15, lineas * 15);
+      // Encontrar primera y última fecha del mes
+      let primeraFecha = registros[0].fechaEjecucion.clone();
+      let ultimaFecha = registros[0].fechaEjecucion.clone();
+      registros.forEach((m) => {
+        if (m.fechaEjecucion.isBefore(primeraFecha))
+          primeraFecha = m.fechaEjecucion;
+        if (m.fechaEjecucion.isAfter(ultimaFecha))
+          ultimaFecha = m.fechaEjecucion;
+      });
+
+      // Ajustar a lunes y viernes
+      while (primeraFecha.day() !== 1) {
+        primeraFecha = primeraFecha.subtract(1, "day");
+      }
+      while (ultimaFecha.day() !== 5) {
+        ultimaFecha = ultimaFecha.add(1, "day");
       }
 
-      // Insertar registros
-      const startRow = 12;
-      semana.forEach((muestra, i) => {
-        const currentRow = startRow + i;
-        worksheet.getCell(`B${currentRow}`).value =
-          muestra.fechaEjecucion && dayjs.isDayjs(muestra.fechaEjecucion)
-            ? muestra.fechaEjecucion.format("YYYY-MM-DD")
-            : "";
-        worksheet.getCell(`E${currentRow}`).value = muestra.hora;
-        worksheet.getCell(`F${currentRow}`).value = muestra.temperatura;
-        worksheet.getCell(`H${currentRow}`).value = muestra.humedad;
-        worksheet.getCell(`J${currentRow}`).value = muestra.firma;
-        worksheet.getCell(`L${currentRow}`).value = muestra.observaciones;
+      // Agrupar en semanas
+      const semanas = [];
+      let semanaActual = [];
+      let fechaIter = primeraFecha.clone();
+      while (
+        fechaIter.isBefore(ultimaFecha) ||
+        fechaIter.isSame(ultimaFecha, "day")
+      ) {
+        if (fechaIter.day() >= 1 && fechaIter.day() <= 5) {
+          const registrosDia = registros.filter((m) =>
+            m.fechaEjecucion.isSame(fechaIter, "day")
+          );
+
+          while (registrosDia.length < 3) {
+            registrosDia.push({
+              fechaEjecucion: fechaIter.clone(),
+              hora: "",
+              temperatura: "",
+              humedad: "",
+              firma: "",
+              observaciones: "",
+            });
+          }
+
+          semanaActual.push(...registrosDia);
+
+          if (semanaActual.length === 15) {
+            semanas.push(semanaActual);
+            semanaActual = [];
+          }
+        }
+        fechaIter = fechaIter.add(1, "day");
+      }
+      if (semanaActual.length > 0) {
+        while (semanaActual.length < 15) {
+          semanaActual.push({
+            fechaEjecucion: null,
+            hora: "",
+            temperatura: "",
+            humedad: "",
+            firma: "",
+            observaciones: "",
+          });
+        }
+        semanas.push(semanaActual);
+      }
+
+      // Crear workbook para el mes
+      const workbook = new ExcelJS.Workbook();
+
+      semanas.forEach((semana, index) => {
+        const nombre = index === 0 ? hojaBase.name : `Semana ${index + 1}`;
+        const worksheet = clonarHojaCompleta(workbook, nombre);
+
+        worksheet.getCell("D4").value = sampleData.nombre;
+        worksheet.getCell("K4").value = sampleData.codigo;
+        worksheet.getCell("D6").value = sampleData.norma;
+        worksheet.getCell("K6").value = sampleData.especificacion;
+        worksheet.getCell("D8").value = sampleData.rangoMedicion;
+        worksheet.getCell("K8").value = sampleData.lugarMedicion;
+
+        if (sampleData.conclusion) {
+          worksheet.getCell("A28").value = sampleData.conclusion;
+          const lineas = sampleData.conclusion.split("\n").length;
+          worksheet.getRow(42).height = Math.max(15, lineas * 15);
+        }
+
+        const startRow = 12;
+        semana.forEach((muestra, i) => {
+          const currentRow = startRow + i;
+          worksheet.getCell(`B${currentRow}`).value =
+            muestra.fechaEjecucion && dayjs.isDayjs(muestra.fechaEjecucion)
+              ? muestra.fechaEjecucion.format("YYYY-MM-DD")
+              : "";
+          worksheet.getCell(`E${currentRow}`).value = muestra.hora;
+          worksheet.getCell(`F${currentRow}`).value = muestra.temperatura;
+          worksheet.getCell(`H${currentRow}`).value = muestra.humedad;
+          worksheet.getCell(`J${currentRow}`).value = muestra.firma;
+          worksheet.getCell(`L${currentRow}`).value = muestra.observaciones;
+        });
       });
-    });
 
-    // --- Responder con archivo ---
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="Ambiental_${sampleData.id}.xlsx"`
-    );
-    await workbook.xlsx.write(res);
-    res.end();
+      // Guardar en buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+      excelBuffers.push({
+        nombre: `Ambiental_${sampleData.id}_${claveMes}.xlsx`,
+        buffer,
+      });
+    }
 
+    // --- Responder ---
+    if (excelBuffers.length === 1) {
+      // Solo un mes -> descargar Excel directo
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${excelBuffers[0].nombre}"`
+      );
+      res.send(Buffer.from(excelBuffers[0].buffer));
+    } else {
+      // Varios meses -> enviar ZIP
+      res.setHeader("Content-Type", "application/zip");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="Ambiental_${sampleData.id}.zip"`
+      );
+
+      const archive = archiver("zip", { zlib: { level: 9 } });
+      archive.pipe(res);
+
+      excelBuffers.forEach((file) => {
+        archive.append(file.buffer, { name: file.nombre });
+      });
+
+      await archive.finalize();
+    }
   } catch (error) {
-    console.error("Error al generar Excel:", error);
-    res.status(500).json({ error: "Error al generar el Excel", details: error.message });
+    
+    res
+      .status(500)
+      .json({ error: "Error al generar el Excel", details: error.message });
   }
 };
